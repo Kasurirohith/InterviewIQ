@@ -88,7 +88,7 @@ RESUME:
         if not questions:
             raise HTTPException(
                 status_code=500,
-                detail="Gemini did not generate any questions."
+                detail="Gemini did not generate any question ."
             )
 
         return {
