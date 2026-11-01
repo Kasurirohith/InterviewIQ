@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # AI Interview Coach
 
 AI-powered interview preparation platform built using React, FastAPI, and SQLite.
@@ -31,3 +32,6 @@ Backend:
 - Company Specific Interviews
 - PDF Certificate Generation
 - Advanced Analytics Dashboard
+=======
+# InterviewIQ
+>>>>>>> 7c5be210cdd58c7087201d4014f5ce32014f216c
