@@ -77,3 +77,11 @@ export async function revokeSubscription(id, adminPassword) {
   });
   return readResponse(response);
 }
+
+
+export async function loadSubscriptionStatus(paymentReference) {
+  const response = await fetch(
+    `${API_URL}/subscriptions/status/${encodeURIComponent(paymentReference)}`,
+  );
+  return readResponse(response);
+}
