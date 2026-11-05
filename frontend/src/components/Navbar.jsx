@@ -2,215 +2,45 @@ import { Link, useNavigate } from "react-router-dom";
 
 function Navbar() {
   const navigate = useNavigate();
-
-  const username = localStorage.getItem("username");
-  const email = localStorage.getItem("email");
+  const username = localStorage.getItem("username")?.trim();
+  const email = localStorage.getItem("email") || "";
   const isLoggedIn = Boolean(username || email);
-
-  const displayName = username || email?.split("@")[0] || "User";
-
+  const displayName = username || email.split("@")[0] || "User";
+  const initial = displayName.charAt(0).toLocaleUpperCase() || "U";
   const handleLogout = () => {
     localStorage.removeItem("username");
     localStorage.removeItem("email");
+    localStorage.removeItem("token");
     navigate("/login");
   };
-
-  return (
-    <>
-      {/* Embedded Navbar CSS */}
-      <style>{`
-        .site-navbar {
-          width: 100%;
-          min-height: 68px;
-          padding: 12px 28px;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 24px;
-          background: #ffffff;
-          border-bottom: 1px solid #e5e5e5;
-          position: relative;
-          z-index: 10;
-        }
-
-        .navbar-brand {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          color: #171717;
-          text-decoration: none;
-          font-size: 19px;
-          font-weight: 700;
-          white-space: nowrap;
-        }
-
-        .brand-mark {
-          width: 32px;
-          height: 32px;
-          display: grid;
-          place-items: center;
-          background: #171717;
-          color: #ffffff;
-          border-radius: 9px;
-          font-size: 12px;
-          letter-spacing: 0.5px;
-        }
-
-        .navbar-links {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 24px;
-        }
-
-        .navbar-links a,
-        .navbar-login {
-          color: #333333;
-          text-decoration: none;
-          font-size: 14px;
-          font-weight: 500;
-        }
-
-        .navbar-links a:hover,
-        .navbar-login:hover {
-          color: #777777;
-        }
-
-        .navbar-account {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          white-space: nowrap;
-        }
-
-        .navbar-user {
-          color: #333333;
-          font-size: 14px;
-        }
-
-        .navbar-login {
-          padding: 9px 14px;
-          border: 1px solid #d4d4d4;
-          border-radius: 8px;
-        }
-
-        .navbar-signup,
-        .navbar-button {
-          padding: 9px 15px;
-          border: 1px solid #171717;
-          border-radius: 8px;
-          background: #171717;
-          color: #ffffff;
-          text-decoration: none;
-          font-family: inherit;
-          font-size: 14px;
-          font-weight: 500;
-          cursor: pointer;
-        }
-
-        .navbar-signup:hover,
-        .navbar-button:hover {
-          background: #333333;
-        }
-
-        @media (max-width: 900px) {
-          .site-navbar {
-            flex-wrap: wrap;
-            justify-content: center;
-            padding: 14px;
-          }
-
-          .navbar-brand {
-            width: 100%;
-            justify-content: center;
-          }
-
-          .navbar-links {
-            flex-wrap: wrap;
-            gap: 14px;
-          }
-        }
-
-        @media (max-width: 500px) {
-          .navbar-links {
-            gap: 10px;
-          }
-
-          .navbar-links a {
-            font-size: 12px;
-          }
-        }
-
-        /* Added Custom Overrides */
-        .site-navbar .navbar-brand,
-        .site-navbar .navbar-account {
-          display: flex !important;
-          visibility: visible !important;
-          opacity: 1 !important;
-        }
-
-        .site-navbar .navbar-brand {
-          margin-right: auto;
-          color: #171717 !important;
-        }
-
-        .site-navbar .navbar-account {
-          margin-left: auto;
-        }
-
-        .site-navbar .brand-mark {
-          display: grid !important;
-          background: #171717 !important;
-          color: #ffffff !important;
-        }
-
-        .site-navbar .navbar-signup,
-        .site-navbar .navbar-button {
-          background: #171717 !important;
-          color: #ffffff !important;
-        }
-      `}</style>
-
-      {/* Navbar Markup */}
-      <header className="site-navbar">
-        <Link to="/" className="navbar-brand">
-          <span className="brand-mark">AI</span>
-          <span>AI Interview Coach</span>
-        </Link>
-
-        <nav className="navbar-links">
-          <Link to="/">Home</Link>
-          <Link to="/product-companies">Product Companies</Link>
-          <Link to="/service-companies">Service Companies</Link>
-          <Link to="/coding">Coding Practice</Link>
-        </nav>
-
-        <div className="navbar-account">
-          {isLoggedIn ? (
-            <>
-              <span className="navbar-user">{displayName}</span>
-              <button
-                type="button"
-                className="navbar-button"
-                onClick={handleLogout}
-              >
-                Logout
-              </button>
-            </>
-          ) : (
-            <>
-              <Link className="navbar-login" to="/login">
-                Login
-              </Link>
-              <Link className="navbar-signup" to="/signup">
-                Sign Up
-              </Link>
-            </>
-          )}
-        </div>
-      </header>
-    </>
-  );
+  const styles = `
+    .site-navbar { width:100%; min-height:68px; padding:12px 28px; display:flex; align-items:center; justify-content:space-between; gap:24px; background:#fff; border-bottom:1px solid #e5e5e5; position:relative; z-index:10; }
+    .navbar-brand { color:#171717; text-decoration:none; font-size:19px; font-weight:700; white-space:nowrap; margin-right:auto; }
+    .navbar-links { display:flex; align-items:center; justify-content:center; gap:24px; border:0 !important; box-shadow:none !important; }
+    .navbar-links a,.navbar-login { color:#333; text-decoration:none; font-size:14px; font-weight:500; border:0 !important; box-shadow:none !important; }
+    .navbar-links a:hover,.navbar-login:hover { color:#777; }
+    .navbar-account { display:flex; align-items:center; gap:12px; white-space:nowrap; margin-left:auto; }
+    .navbar-login { padding:9px 14px; border:1px solid #d4d4d4 !important; border-radius:8px; }
+    .navbar-signup,.navbar-button { padding:9px 15px; border:1px solid #171717; border-radius:8px; background:#171717; color:#fff; text-decoration:none; font-family:inherit; font-size:14px; font-weight:500; cursor:pointer; }
+    .navbar-signup:hover,.navbar-button:hover { background:#333; }
+    .account-menu { position:relative; }
+    .account-menu summary { list-style:none; cursor:pointer; }
+    .account-menu summary::-webkit-details-marker { display:none; }
+    .account-avatar { width:42px; height:42px; display:grid; place-items:center; border:1px solid #dedbd7; border-radius:50%; background:#f7f6f3; color:#171717; font-size:17px; font-weight:600; }
+    .account-menu[open] .account-avatar,.account-avatar:hover { background:#efeeeb; }
+    .account-popover { position:absolute; top:calc(100% + 12px); right:0; width:min(300px,calc(100vw - 32px)); padding:18px; border:1px solid #e5e5e5; border-radius:14px; background:#fff; box-shadow:0 12px 32px rgba(0,0,0,.12); color:#171717; }
+    .account-popover h2 { margin:0 0 14px; font-size:16px; }
+    .account-detail { margin:11px 0; overflow-wrap:anywhere; }
+    .account-detail-label { display:block; margin-bottom:3px; color:#777; font-size:12px; }
+    .account-detail-value { font-size:14px; }
+    .account-logout { width:100%; margin-top:8px; }
+    @media(max-width:900px) { .site-navbar { flex-wrap:wrap; justify-content:center; padding:14px; } .navbar-brand { width:100%; text-align:center; } .navbar-links { flex-wrap:wrap; gap:14px; } .navbar-account { margin-left:0; } }
+    @media(max-width:500px) { .navbar-links { gap:10px; } .navbar-links a { font-size:12px; } }
+  `;
+  return <><style>{styles}</style><header className="site-navbar">
+    <Link to="/" className="navbar-brand">InterviewIQ</Link>
+    <nav className="navbar-links" aria-label="Main navigation"><Link to="/">Home</Link><Link to="/product-companies">Product Companies</Link><Link to="/service-companies">Service Companies</Link><Link to="/coding">Coding Practice</Link></nav>
+    <div className="navbar-account">{isLoggedIn ? <details className="account-menu"><summary aria-label="Open account details"><span className="account-avatar" aria-hidden="true">{initial}</span></summary><section className="account-popover" aria-label="Account details"><h2>Account</h2><div className="account-detail"><span className="account-detail-label">Name</span><span className="account-detail-value">{displayName}</span></div><div className="account-detail"><span className="account-detail-label">Email</span><span className="account-detail-value">{email || "Not available"}</span></div><div className="account-detail"><span className="account-detail-label">Subscription</span><span className="account-detail-value">Free plan</span></div><button type="button" className="navbar-button account-logout" onClick={handleLogout}>Log out</button></section></details> : <><Link className="navbar-login" to="/login">Login</Link><Link className="navbar-signup" to="/signup">Sign Up</Link></>}</div>
+  </header></>;
 }
-
 export default Navbar;
