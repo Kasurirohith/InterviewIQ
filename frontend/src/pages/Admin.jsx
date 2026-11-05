@@ -30,7 +30,7 @@ export default function Admin() {
       setError(requestError.message || "Could not load subscription records.");
       if (requestError.message?.includes("Invalid admin password")) {
         sessionStorage.removeItem(ADMIN_SESSION_KEY);
-        navigate("/admin/login", { replace: true });
+        navigate("/login", { replace: true });
       }
     } finally {
       setBusy(false);
@@ -39,7 +39,7 @@ export default function Admin() {
 
   useEffect(() => {
     if (!password) {
-      navigate("/admin/login", { replace: true });
+      navigate("/login", { replace: true });
       return;
     }
     refresh();
@@ -74,7 +74,7 @@ export default function Admin() {
 
   const logout = () => {
     sessionStorage.removeItem(ADMIN_SESSION_KEY);
-    navigate("/admin/login", { replace: true });
+    navigate("/login", { replace: true });
   };
 
   if (!password) return null;

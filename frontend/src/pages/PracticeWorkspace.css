@@ -281,3 +281,16 @@
     min-height: 300px;
   }
 }
+
+/* Match the Plans surface while keeping code legible. */
+#root .app-layout .app-main .practice-workspace { background: #f7f6f3 !important; color: #171715 !important; padding: clamp(20px, 3vw, 44px) !important; }
+#root .app-layout .app-main .practice-workspace .workspace-layout { width: min(100%, 1720px) !important; max-width: none !important; gap: clamp(14px, 1.4vw, 22px) !important; }
+#root .app-layout .app-main .practice-workspace .workspace-sidebar,
+#root .app-layout .app-main .practice-workspace .workspace-problem,
+#root .app-layout .app-main .practice-workspace .workspace-editor { background: #fffefa !important; border-color: #dfddd7 !important; box-shadow: 0 12px 36px rgba(48,43,33,.045) !important; }
+#root .app-layout .app-main .practice-workspace .workspace-question,
+#root .app-layout .app-main .practice-workspace .workspace-problem pre,
+#root .app-layout .app-main .practice-workspace .workspace-output,
+#root .app-layout .app-main .practice-workspace .aptitude-options label { background: #f0eee9 !important; border-color: #dfddd7 !important; }
+#root .app-layout .app-main .practice-workspace .workspace-question.active,
+#root .app-layout .app-main .practice-workspace .aptitude-options label.selected { border-color: #81735f !important; }

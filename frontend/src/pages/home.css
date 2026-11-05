@@ -760,3 +760,15 @@
     font-size: clamp(33px, 8vw, 44px) !important;
   }
 }
+
+/* Keep the landing page in the same warm palette as Plans. */
+#root .app-layout .app-main .home-page { background: #f7f6f3 !important; color: #171715 !important; }
+#root .app-layout .app-main .home-page .resume-panel,
+#root .app-layout .app-main .home-page .home-choice-card { background: #fffefa !important; border-color: #dfddd7 !important; box-shadow: 0 12px 36px rgba(48,43,33,.045) !important; }
+#root .app-layout .app-main .home-page .resume-status,
+#root .app-layout .app-main .home-page .coding-panel,
+#root .app-layout .app-main .home-page .home-icon-box { background: #f0eee9 !important; border-color: #dfddd7 !important; }
+#root .app-layout .app-main .home-page .home-container { max-width: 1560px !important; }
+#root .app-layout .app-main .home-page .home-hero { background: radial-gradient(ellipse at 50% 0%, #eeece6 0, #f7f6f3 68%) !important; }
+#root .app-layout .app-main .home-page .home-choice-card { padding: clamp(24px, 2.4vw, 38px) !important; }
+#root .app-layout .app-main .home-page .home-page button { min-height: 48px; }

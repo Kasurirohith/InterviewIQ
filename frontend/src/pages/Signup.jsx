@@ -26,7 +26,7 @@ export default function Signup() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          username,
+          name: username,
           email,
           password,
         }),
@@ -34,13 +34,17 @@ export default function Signup() {
 
       const data = await response.json();
 
-      if (!response.ok) {
+      if (!response.ok || data.success === false) {
         throw new Error(
           data.detail || data.message || "Account creation failed."
         );
       }
 
-      navigate("/login");
+      localStorage.setItem("username", data.name || username);
+      localStorage.setItem("email", data.email || email);
+      localStorage.setItem("userRole", "user");
+      sessionStorage.removeItem("interviewiqAdminPassword");
+      navigate("/", { replace: true });
     } catch (err) {
       setError(
         err.message || "Unable to connect to the server. Please try again."
@@ -104,9 +108,6 @@ export default function Signup() {
 
         <p className="auth-switch">
           Already have an account? <Link to="/login">Login</Link>
-        </p>
-        <p className="auth-switch auth-admin-link">
-          Administrator? <Link to="/admin/login">Sign in as admin</Link>
         </p>
       </section>
     </main>

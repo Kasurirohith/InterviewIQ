@@ -9,7 +9,7 @@
   justify-content: center;
   align-items: center;
   box-sizing: border-box;
-  background: #ffffff !important;
+  background: var(--page-bg, #f7f6f3) !important;
   color: #171717 !important;
 }
 
@@ -43,27 +43,6 @@
   color: #666666 !important;
   font-size: 15px;
   line-height: 1.7;
-}
-
-.auth-role-choice {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin: -12px 0 24px;
-  color: #525252;
-  font-size: 14px;
-}
-
-.auth-role-choice a {
-  color: #171717;
-  font-weight: 700;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-.auth-admin-link {
-  margin-top: 8px;
 }
 
 .auth-form {
@@ -168,3 +147,10 @@
     border-radius: 12px;
   }
 }
+
+/* Signup and login share the Plans page's soft warm background. */
+#root .app-layout .app-main .auth-page { background: #f7f6f3 !important; padding: clamp(32px, 6vw, 84px) 20px !important; }
+#root .app-layout .app-main .auth-page .auth-card { max-width: 560px; background: #fffefa !important; border-color: #dfddd7 !important; box-shadow: 0 16px 46px rgba(48,43,33,.06) !important; }
+#root .app-layout .app-main .auth-page .auth-form input { background: #fffefa !important; border-color: #d8d4cc !important; }
+#root .app-layout .app-main .auth-page .auth-form input:focus { border-color: #81735f !important; box-shadow: 0 0 0 3px rgba(129,115,95,.13) !important; }
+#root .app-layout .app-main .auth-page .auth-form button { min-height: 50px; background: #171715 !important; }

@@ -8,7 +8,7 @@ const API_URL =
 
 export default function Login() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -24,24 +24,33 @@ export default function Login() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: identifier, name: identifier, password }),
       });
 
       const data = await response.json();
 
-      if (!response.ok) {
+      if (!response.ok || data.success === false) {
         throw new Error(
           data.detail || data.message || "Login failed. Please check your details."
         );
       }
 
-      localStorage.setItem("email", email);
+      localStorage.setItem("email", data.email || identifier);
 
-      if (data.username) {
-        localStorage.setItem("username", data.username);
+      const displayName = data.name || data.username;
+      if (displayName) {
+        localStorage.setItem("username", displayName);
       }
 
-      navigate("/");
+      if (data.role === "admin") {
+        sessionStorage.setItem("interviewiqAdminPassword", password);
+        localStorage.setItem("userRole", "admin");
+        navigate("/admin", { replace: true });
+      } else {
+        sessionStorage.removeItem("interviewiqAdminPassword");
+        localStorage.setItem("userRole", "user");
+        navigate("/", { replace: true });
+      }
     } catch (err) {
       setError(
         err.message || "Unable to connect to the server. Please try again."
@@ -59,20 +68,15 @@ export default function Login() {
           <p>Sign in to continue your interview preparation.</p>
         </div>
 
-        <div className="auth-role-choice" aria-label="Choose sign-in type">
-          <span>Signing in as a user?</span>
-          <Link to="/admin/login">Admin sign in</Link>
-        </div>
-
         <form className="auth-form" onSubmit={handleLogin}>
-          <label htmlFor="login-email">Email address</label>
+          <label htmlFor="login-email">Email, name or phone number</label>
           <input
             id="login-email"
-            type="email"
-            placeholder="Enter your email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            autoComplete="email"
+            type="text"
+            placeholder="Enter your email, name or phone number"
+            value={identifier}
+            onChange={(e) => setIdentifier(e.target.value)}
+            autoComplete="username"
             required
           />
 

@@ -274,3 +274,25 @@
     padding: 20px;
   }
 }
+
+/* Shared warm Plans-page palette and roomy responsive company cards. */
+#root .app-layout .app-main .companies-page,
+#root .app-layout .app-main .company-details-page,
+#root .app-layout .app-main .companies-overview { background: #f7f6f3 !important; color: #171715 !important; }
+#root .app-layout .app-main .companies-overview .company-card,
+#root .app-layout .app-main .companies-page .company-card,
+#root .app-layout .app-main .company-details-page section,
+#root .app-layout .app-main .company-details-page article,
+#root .app-layout .app-main .company-details-page .card,
+#root .app-layout .app-main .company-details-page [class*="track"],
+#root .app-layout .app-main .company-details-page [class*="preparation"],
+#root .app-layout .app-main .company-details-page [class*="module"],
+#root .app-layout .app-main .company-details-page [class*="practice"] {
+  background-color: #fffefa !important; border-color: #dfddd7 !important;
+  box-shadow: 0 12px 36px rgba(48,43,33,.045) !important;
+}
+#root .app-layout .app-main .companies-overview .company-card { padding: clamp(24px, 2.4vw, 38px) !important; }
+#root .app-layout .app-main .companies-overview-grid,
+#root .app-layout .app-main .companies-grid { width: min(100%, 1560px) !important; max-width: none !important; gap: clamp(18px, 2vw, 28px) !important; }
+#root .app-layout .app-main .company-difficulty,
+#root .app-layout .app-main .company-overview-category { background: #f0eee9 !important; border-color: #dfddd7 !important; }
