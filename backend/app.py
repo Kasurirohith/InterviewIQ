@@ -685,3 +685,34 @@ def admin_revoke_subscription(
         raise HTTPException(status_code=409, detail="Only active subscriptions can be revoked.")
     conn.commit()
     return {"success": True, "status": "revoked"}
+
+
+@app.get("/subscriptions/status/{payment_reference}")
+def subscription_status(payment_reference: str):
+    """Return the latest admin-reviewed state for one unguessable demo reference."""
+    cursor.execute(
+        """SELECT plan_name, category, demo_amount, payment_method,
+                  payment_reference, payment_status, status, created_at, updated_at
+           FROM subscriptions WHERE payment_reference=?""",
+        (payment_reference,),
+    )
+    row = cursor.fetchone()
+    if row is None:
+        raise HTTPException(status_code=404, detail="Subscription record not found.")
+
+    columns = [item[0] for item in cursor.description]
+    record = dict(zip(columns, row))
+    return {
+        "subscription": {
+            "name": record["plan_name"],
+            "category": record["category"],
+            "amount": record["demo_amount"],
+            "duration": "30 days",
+            "payment_method": record["payment_method"],
+            "payment_reference": record["payment_reference"],
+            "payment_status": record["payment_status"],
+            "status": record["status"],
+            "created_at": record["created_at"],
+            "updated_at": record["updated_at"],
+        }
+    }
