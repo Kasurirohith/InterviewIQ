@@ -1,0 +1,108 @@
+.subscription-page {
+  width: min(1120px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: 64px 0 80px;
+  color: #171717;
+}
+
+.subscription-page h1,
+.subscription-page h2,
+.subscription-page h3,
+.subscription-page p,
+.subscription-page li,
+.subscription-page dd,
+.subscription-page dt,
+.subscription-page legend,
+.subscription-page label,
+.subscription-page span {
+  color: inherit;
+}
+
+.subscription-hero { max-width: 720px; margin: 0 auto 38px; text-align: center; }
+.subscription-eyebrow { margin: 0 0 10px; color: #696969 !important; font-size: 12px; font-weight: 700; letter-spacing: .12em; }
+.subscription-hero h1,.subscription-page > h1 { margin: 0; font-size: clamp(32px, 5vw, 48px); line-height: 1.1; letter-spacing: -.04em; }
+.subscription-hero > p:not(.subscription-eyebrow),.subscription-lead { margin: 14px auto 0; color: #626262 !important; font-size: 17px; line-height: 1.6; }
+.subscription-demo-notice { margin: 22px 0 0; padding: 13px 16px; border: 1px solid #dedede; border-radius: 10px; background: #f8f8f8; color: #3c3c3c !important; font-size: 14px; line-height: 1.55; }
+.subscription-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; align-items: stretch; }
+.subscription-card,.checkout-plan-card,.checkout-form,.account-subscription-card,.admin-login,.admin-record,.admin-empty { border: 1px solid #dedede; border-radius: 18px; background: #fff !important; color: #171717 !important; box-shadow: 0 10px 35px rgba(0,0,0,.045); }
+.subscription-card { display: flex; flex-direction: column; padding: 28px; }
+.subscription-card-featured { border-color: #171717; box-shadow: 0 12px 38px rgba(0,0,0,.1); }
+.subscription-card-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.subscription-category { display: inline-flex; max-width: 75%; padding: 7px 10px; border-radius: 999px; background: #f3f3f3; color: #444 !important; font-size: 12px; font-weight: 600; line-height: 1.4; }
+.subscription-discount { padding: 7px 10px; border: 1px solid #d6d6d6; border-radius: 999px; color: #171717 !important; font-size: 12px; font-weight: 700; white-space: nowrap; }
+.subscription-card h2 { margin: 22px 0 8px; font-size: 25px; letter-spacing: -.02em; }
+.subscription-summary { min-height: 50px; margin: 0; color: #626262 !important; line-height: 1.55; }
+.subscription-price { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; margin-top: 22px; }
+.subscription-price del { color: #777 !important; font-size: 17px; }
+.subscription-price strong { font-size: 34px; letter-spacing: -.04em; }
+.subscription-price > span { color: #666 !important; font-size: 14px; }
+.subscription-price-note { margin: 0; color: #777 !important; font-size: 12px; }
+.subscription-card h3 { margin: 24px 0 10px; font-size: 15px; }
+.subscription-card ul,.checkout-plan-card ul { display: grid; gap: 11px; margin: 0 0 26px; padding-left: 20px; color: #444 !important; line-height: 1.5; }
+.subscription-primary,.subscription-secondary { display: inline-flex; min-height: 46px; align-items: center; justify-content: center; gap: 8px; padding: 12px 16px; border: 1px solid #171717; border-radius: 9px; background: #171717 !important; color: #fff !important; font: inherit; font-weight: 650; text-align: center; text-decoration: none; cursor: pointer; }
+.subscription-primary:hover { background: #333 !important; border-color: #333; }
+.subscription-primary:disabled,.subscription-secondary:disabled { opacity: .65; cursor: wait; }
+.subscription-card > .subscription-primary { width: 100%; margin-top: auto; }
+.subscription-secondary { border-color: #d4d4d4; background: #fff !important; color: #171717 !important; }
+.subscription-help { margin: 36px auto 0; padding: 25px; border-top: 1px solid #e5e5e5; text-align: center; }
+.subscription-help h2 { margin: 0; font-size: 20px; }
+.subscription-help p { color: #666 !important; }
+.subscription-help a,.subscription-back { color: #171717 !important; font-weight: 650; text-decoration: underline; text-underline-offset: 3px; }
+.checkout-page { max-width: 1050px; }
+.subscription-back { display: inline-block; margin-bottom: 26px; }
+.checkout-layout { display: grid; grid-template-columns: minmax(0,1fr) minmax(320px,.85fr); gap: 28px; align-items: start; }
+.checkout-details > h1 { margin: 0 0 22px; font-size: 40px; }
+.checkout-plan-card,.checkout-form { padding: 26px; }
+.checkout-plan-card h2 { margin: 14px 0 4px; font-size: 24px; }
+.checkout-plan-card > p { margin: 0 0 20px; color: #666 !important; }
+.checkout-plan-card ul { margin-bottom: 0; }
+.checkout-price-line { display: flex; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid #ececec; color: #555 !important; }
+.checkout-price-line del { color: #777 !important; }
+.checkout-total { border: 0; color: #171717 !important; font-size: 18px; }
+.checkout-total strong { font-size: 22px; }
+.checkout-form h2 { margin: 0; font-size: 23px; }
+.checkout-form > .subscription-demo-notice { margin: 13px 0 20px; }
+.payment-methods { display: grid; gap: 10px; margin: 0 0 20px; padding: 0; border: 0; }
+.payment-methods legend { margin-bottom: 10px; font-size: 14px; font-weight: 700; }
+.payment-method { display: flex; align-items: flex-start; gap: 11px; padding: 14px; border: 1px solid #dedede; border-radius: 11px; cursor: pointer; }
+.payment-method.selected { border-color: #171717; background: #f7f7f7; }
+.payment-method input { width: 17px; height: 17px; margin: 2px 0 0; accent-color: #171717; }
+.payment-method span { display: grid; gap: 4px; }
+.payment-method strong { font-size: 14px; }
+.payment-method small { color: #666 !important; font-size: 12px; line-height: 1.4; }
+.checkout-form > .subscription-primary { width: 100%; }
+.checkout-disclaimer { margin: 12px 0 0; color: #6c6c6c !important; font-size: 12px; line-height: 1.5; text-align: center; }
+.subscription-error { padding: 12px 14px; border: 1px solid #d88484; border-radius: 9px; background: #fff6f6; color: #8d2222 !important; }
+.account-subscription-page > h1,.admin-page > h1 { margin: 0; }
+.account-subscription-card { margin-top: 26px; padding: 28px; }
+.account-subscription-card h2 { margin: 0 0 20px; font-size: 21px; }
+.account-subscription-grid,.admin-record-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 0 24px; margin: 0; }
+.account-subscription-grid > div,.admin-record-grid > div { min-width: 0; padding: 13px 0; border-top: 1px solid #eee; }
+.account-subscription-grid dt,.admin-record-grid dt { margin-bottom: 5px; color: #777 !important; font-size: 12px; }
+.account-subscription-grid dd,.admin-record-grid dd { margin: 0; overflow-wrap: anywhere; font-size: 15px; line-height: 1.5; }
+.subscription-status { display: inline-flex; padding: 5px 9px; border-radius: 999px; background: #f1f1f1; color: #555 !important; font-size: 12px; font-weight: 700; text-transform: capitalize; }
+.subscription-status.is-active { background: #eaf6ee; color: #21633a !important; }
+.account-subscription-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin-top: 20px; }
+.account-subscription-actions p { margin: 0; color: #666 !important; }
+.link-button { min-width: 160px; }
+.admin-login { display: grid; gap: 12px; width: min(440px, 100%); margin-top: 26px; padding: 24px; }
+.admin-login label { font-weight: 650; }
+.admin-login input { min-height: 44px; padding: 10px 12px; }
+.admin-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 24px 0 14px; }
+.admin-toolbar p { margin: 0; color: #555 !important; }
+.admin-record-list { display: grid; gap: 16px; }
+.admin-record { padding: 22px; }
+.admin-record-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.admin-record-heading h2 { margin: 0; font-size: 20px; }
+.admin-record-grid { grid-template-columns: repeat(3,minmax(0,1fr)); margin-top: 10px; }
+.admin-empty { margin-top: 20px; padding: 28px; color: #666 !important; }
+.admin-footnote { margin-top: 20px; color: #777 !important; font-size: 12px; }
+
+@media(max-width:760px) {
+  .subscription-page { width: min(100% - 28px, 560px); padding: 42px 0 56px; }
+  .subscription-grid,.checkout-layout { grid-template-columns: 1fr; }
+  .subscription-card { padding: 22px; }
+  .account-subscription-card { padding: 21px; }
+  .account-subscription-grid,.admin-record-grid { grid-template-columns: 1fr; }
+  .checkout-details > h1 { font-size: 33px; }
+}
