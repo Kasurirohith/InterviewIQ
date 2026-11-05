@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { uploadResume } from "../services/api";
-import "./Home.css";
+import "./home.css";
 
 function Home() {
   const navigate = useNavigate();
