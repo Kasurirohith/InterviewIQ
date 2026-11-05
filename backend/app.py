@@ -1,9 +1,11 @@
 import os
 import json
 import re
+import secrets
+from datetime import datetime, timezone
 from google import genai
 from dotenv import load_dotenv
-from fastapi import HTTPException
+from fastapi import HTTPException, Header
 import tempfile
 import pdfplumber
 from fastapi import FastAPI, UploadFile, File
@@ -93,6 +95,45 @@ class GeneratedQuestion(BaseModel):
     category: str
     difficulty: str
     expected_points: list[str] = Field(default_factory=list)
+
+
+class DemoSubscriptionRequest(BaseModel):
+    name: str = Field(min_length=1, max_length=120)
+    email: str = Field(min_length=3, max_length=254)
+    plan_code: str
+    payment_method: str
+
+
+SUBSCRIPTION_PLANS = {
+    "starter": {
+        "name": "InterviewIQ Starter",
+        "category": "Interview and resume preparation",
+        "list_price": 199.0,
+        "discount_percent": 40,
+        "amount": 119.4,
+        "duration": "30 days",
+        "features": [
+            "Company-specific interview preparation",
+            "Resume review and improvement guidance",
+            "Interview practice with AI feedback",
+            "Progress tracking for your preparation",
+        ],
+    },
+    "plus": {
+        "name": "InterviewIQ Plus",
+        "category": "Interview, resume, and coding preparation",
+        "list_price": 299.0,
+        "discount_percent": 50,
+        "amount": 149.5,
+        "duration": "30 days",
+        "features": [
+            "Everything in Starter",
+            "Coding practice and technical preparation",
+            "Expanded company-specific preparation paths",
+            "Interview feedback and progress tracking",
+        ],
+    },
+}
 
 class GenerateQuestionsResponse(BaseModel):
     company: str
@@ -517,3 +558,95 @@ def company_questions(company: str):
     return {
         "questions": questions.get(company.lower(), ["Tell me about yourself."])
     }
+
+
+def require_admin(admin_password: str | None) -> None:
+    configured_password = os.getenv("ADMIN_PASSWORD", "")
+    if not configured_password:
+        raise HTTPException(
+            status_code=503,
+            detail="Admin access is not configured. Set ADMIN_PASSWORD on the backend.",
+        )
+    if not admin_password or not secrets.compare_digest(admin_password, configured_password):
+        raise HTTPException(status_code=401, detail="Invalid admin password.")
+
+
+@app.get("/subscriptions/plans")
+def subscription_plans():
+    return {"plans": SUBSCRIPTION_PLANS}
+
+
+@app.post("/subscriptions/demo")
+def create_demo_subscription(request: DemoSubscriptionRequest):
+    """Record a clearly simulated payment; this endpoint never charges money."""
+    plan = SUBSCRIPTION_PLANS.get(request.plan_code)
+    if not plan:
+        raise HTTPException(status_code=400, detail="Choose a valid subscription plan.")
+
+    payment_method = request.payment_method
+    if payment_method not in {"demo_card", "demo_upi"}:
+        raise HTTPException(status_code=400, detail="Choose demo debit card or demo UPI.")
+
+    email = request.email.strip().lower()
+    if not re.fullmatch(r"[^\s@]+@[^\s@]+\.[^\s@]+", email):
+        raise HTTPException(status_code=400, detail="Enter a valid email address.")
+
+    reference = f"DEMO-{secrets.token_hex(5).upper()}"
+    cursor.execute(
+        """INSERT INTO subscriptions
+           (name, email, plan_code, plan_name, category, list_price,
+            discount_percent, demo_amount, payment_method, payment_reference,
+            payment_status, status)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'demo_paid', 'active')""",
+        (
+            request.name.strip(), email, request.plan_code, plan["name"],
+            plan["category"], plan["list_price"], plan["discount_percent"],
+            plan["amount"], payment_method, reference,
+        ),
+    )
+    conn.commit()
+    return {
+        "success": True,
+        "demo": True,
+        "message": "Demo payment recorded. No money was charged.",
+        "subscription": {
+            "name": plan["name"],
+            "category": plan["category"],
+            "amount": plan["amount"],
+            "duration": plan["duration"],
+            "status": "active",
+            "payment_status": "demo_paid",
+            "payment_method": payment_method,
+            "payment_reference": reference,
+            "activated_at": datetime.now(timezone.utc).isoformat(),
+        },
+    }
+
+
+@app.get("/admin/subscriptions")
+def admin_subscriptions(x_admin_password: str | None = Header(default=None)):
+    require_admin(x_admin_password)
+    cursor.execute(
+        """SELECT id, name, email, plan_code, plan_name, category, list_price,
+                  discount_percent, demo_amount, payment_method, payment_reference,
+                  payment_status, status, created_at
+           FROM subscriptions ORDER BY id DESC"""
+    )
+    columns = [item[0] for item in cursor.description]
+    return {"subscriptions": [dict(zip(columns, row)) for row in cursor.fetchall()]}
+
+
+@app.post("/admin/subscriptions/{subscription_id}/activate")
+def admin_activate_subscription(
+    subscription_id: int,
+    x_admin_password: str | None = Header(default=None),
+):
+    require_admin(x_admin_password)
+    cursor.execute(
+        "UPDATE subscriptions SET status='active', updated_at=CURRENT_TIMESTAMP WHERE id=?",
+        (subscription_id,),
+    )
+    if cursor.rowcount == 0:
+        raise HTTPException(status_code=404, detail="Subscription record not found.")
+    conn.commit()
+    return {"success": True, "status": "active"}

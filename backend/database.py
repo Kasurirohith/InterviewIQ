@@ -33,5 +33,27 @@ CREATE TABLE IF NOT EXISTS interview_history (
 )
 """)
 
+# Demo subscription records. Payment information stored here is limited to the
+# simulated payment method and a non-sensitive demo reference.
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS subscriptions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    email TEXT NOT NULL,
+    plan_code TEXT NOT NULL,
+    plan_name TEXT NOT NULL,
+    category TEXT NOT NULL,
+    list_price REAL NOT NULL,
+    discount_percent INTEGER NOT NULL,
+    demo_amount REAL NOT NULL,
+    payment_method TEXT NOT NULL,
+    payment_reference TEXT NOT NULL,
+    payment_status TEXT NOT NULL DEFAULT 'demo_paid',
+    status TEXT NOT NULL DEFAULT 'active',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)
+""")
+
 # Save the table structures immediately
 conn.commit()
