@@ -13,6 +13,10 @@ import ProductCompanies from "./pages/ProductCompanies";
 import ServiceCompanies from "./pages/ServiceCompanies";
 import InterviewPractice from "./pages/InterviewPractice";
 import PracticeWorkspace from "./pages/PracticeWorkspace";
+import Subscriptions from "./pages/Subscriptions";
+import DemoCheckout from "./pages/DemoCheckout";
+import AccountSubscription from "./pages/AccountSubscription";
+import Admin from "./pages/Admin";
 
 function Footer() {
   return (
@@ -45,6 +49,10 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/subscriptions" element={<Subscriptions />} />
+            <Route path="/subscription/checkout/:planCode" element={<DemoCheckout />} />
+            <Route path="/account/subscription" element={<AccountSubscription />} />
+            <Route path="/admin" element={<Admin />} />
 
             <Route
               path="/product-companies"
