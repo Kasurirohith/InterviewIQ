@@ -16,6 +16,7 @@ import PracticeWorkspace from "./pages/PracticeWorkspace";
 import Subscriptions from "./pages/Subscriptions";
 import DemoCheckout from "./pages/DemoCheckout";
 import AccountSubscription from "./pages/AccountSubscription";
+import AdminLogin from "./pages/AdminLogin";
 import Admin from "./pages/Admin";
 
 function Footer() {
@@ -52,6 +53,7 @@ function App() {
             <Route path="/subscriptions" element={<Subscriptions />} />
             <Route path="/subscription/checkout/:planCode" element={<DemoCheckout />} />
             <Route path="/account/subscription" element={<AccountSubscription />} />
+            <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin" element={<Admin />} />
 
             <Route
