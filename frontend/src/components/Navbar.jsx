@@ -13,10 +13,12 @@ function Navbar() {
     localStorage.removeItem("username");
     localStorage.removeItem("email");
     localStorage.removeItem("token");
+    localStorage.removeItem("userRole");
+    sessionStorage.removeItem("interviewiqAdminPassword");
     navigate("/login");
   };
   const styles = `
-    .site-navbar { width:100%; min-height:68px; padding:12px 28px; display:flex; align-items:center; justify-content:space-between; gap:24px; background:#fff; border-bottom:1px solid #e5e5e5; position:relative; z-index:10; }
+    .site-navbar { width:100%; min-height:68px; padding:12px 28px; display:flex; align-items:center; justify-content:space-between; gap:24px; background:#fff; border-bottom:1px solid #e5e5e5; position:sticky; top:0; z-index:10; }
     .navbar-brand { color:#171717; text-decoration:none; font-size:19px; font-weight:700; white-space:nowrap; margin-right:auto; }
     .navbar-links { display:flex; align-items:center; justify-content:center; gap:24px; border:0 !important; box-shadow:none !important; }
     .navbar-links a,.navbar-login { color:#333; text-decoration:none; font-size:14px; font-weight:500; border:0 !important; box-shadow:none !important; }
