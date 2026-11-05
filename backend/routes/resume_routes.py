@@ -9,15 +9,20 @@ from google import genai
 
 router = APIRouter()
 
-client = genai.Client(
-    api_key=os.getenv("GEMINI_API_KEY")
-)
+gemini_api_key = os.getenv("GEMINI_API_KEY")
+client = genai.Client(api_key=gemini_api_key) if gemini_api_key else None
 
 MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 
 
 @router.post("/upload-resume")
 async def upload_resume(file: UploadFile = File(...)):
+    if not client:
+        raise HTTPException(
+            status_code=503,
+            detail="AI is not configured. Set GEMINI_API_KEY on the backend.",
+        )
+
     if not file.filename or not file.filename.lower().endswith(".pdf"):
         raise HTTPException(
             status_code=400,
