@@ -193,6 +193,19 @@ const fallbackQuestions = {
       description: "Find the largest sum of a non-empty contiguous subarray.",
       example: "Input: [-2, 1, -3, 4, -1, 2, 1, -5, 4]\nExpected output: 6"
     }
+  ],
+
+  aptitude: [
+    { title: "Discounted price", topic: "Percentages", difficulty: "Easy", description: "A jacket costs ₹1,500. A shop gives a 20% discount. What is the selling price?", example: "Choose one answer.", options: ["₹1,000", "₹1,200", "₹1,250", "₹1,300"], correctAnswer: "₹1,200", explanation: "20% of ₹1,500 is ₹300. Subtract the discount: ₹1,500 − ₹300 = ₹1,200." },
+    { title: "Divide in a ratio", topic: "Ratios", difficulty: "Easy", description: "A class has 64 students. The ratio of boys to girls is 3:5. How many girls are there?", example: "Choose one answer.", options: ["24", "32", "40", "48"], correctAnswer: "40", explanation: "There are 8 equal parts. Each part is 64 ÷ 8 = 8, so there are 5 × 8 = 40 girls." },
+    { title: "Average speed", topic: "Speed, time and distance", difficulty: "Easy", description: "A bus travels 180 km in 3 hours at a constant speed. What is its average speed?", example: "Choose one answer.", options: ["45 km/h", "50 km/h", "60 km/h", "90 km/h"], correctAnswer: "60 km/h", explanation: "Average speed = distance ÷ time = 180 ÷ 3 = 60 km/h." },
+    { title: "Calculate profit percentage", topic: "Profit and loss", difficulty: "Easy", description: "A shopkeeper buys a bag for ₹500 and sells it for ₹575. What is the profit percentage?", example: "Choose one answer.", options: ["10%", "12%", "15%", "20%"], correctAnswer: "15%", explanation: "Profit = ₹75. Profit percentage = 75 ÷ 500 × 100 = 15%." },
+    { title: "Two people complete a job", topic: "Time and work", difficulty: "Medium", description: "Worker A can finish a job in 12 days and worker B in 18 days. How long will they take working together at the same rates?", example: "Choose one answer.", options: ["6 days", "7.2 days", "8 days", "15 days"], correctAnswer: "7.2 days", explanation: "Their combined daily rate is 1/12 + 1/18 = 5/36 of the job. The time is 36/5 = 7.2 days." },
+    { title: "Find the average score", topic: "Averages", difficulty: "Easy", description: "A student scores 12, 18, 20, 25 and 25 points in five tests. What is the average score?", example: "Choose one answer.", options: ["18", "20", "21", "22"], correctAnswer: "20", explanation: "The total is 100. Divide by 5 tests to get an average of 20." },
+    { title: "Continue the number pattern", topic: "Number series", difficulty: "Medium", description: "What number comes next in this sequence? 3, 8, 15, 24, 35, …", example: "Choose one answer.", options: ["42", "46", "48", "50"], correctAnswer: "48", explanation: "The differences are 5, 7, 9 and 11. The next difference is 13, so 35 + 13 = 48." },
+    { title: "Simple interest", topic: "Interest", difficulty: "Medium", description: "What simple interest is earned on ₹8,000 at 7% per year for 3 years?", example: "Choose one answer.", options: ["₹1,120", "₹1,480", "₹1,680", "₹2,080"], correctAnswer: "₹1,680", explanation: "Simple interest = 8,000 × 7 × 3 ÷ 100 = ₹1,680." },
+    { title: "Probability of an even number", topic: "Probability", difficulty: "Easy", description: "A fair six-sided die is rolled once. What is the probability of getting an even number?", example: "Choose one answer.", options: ["1/6", "1/3", "1/2", "2/3"], correctAnswer: "1/2", explanation: "The even outcomes are 2, 4 and 6: 3 out of 6 equally likely outcomes. 3/6 = 1/2." },
+    { title: "Read a small data set", topic: "Data interpretation", difficulty: "Medium", description: "A store sells 120, 150, 180, 150 and 200 notebooks from Monday to Friday. What is the average number sold per day?", example: "Choose one answer.", options: ["150", "155", "160", "170"], correctAnswer: "160", explanation: "Total sales are 800. Divide by 5 days: 800 ÷ 5 = 160." }
   ]
 };
 
@@ -201,6 +214,10 @@ function getFallbackQuestions(moduleName) {
 
   if (name.includes("sql") || name.includes("database")) {
     return fallbackQuestions.sql;
+  }
+
+  if (name.includes("aptitude")) {
+    return fallbackQuestions.aptitude;
   }
 
   if (name.includes("web") || name.includes("html") ||
@@ -233,6 +250,9 @@ function PracticeWorkspace() {
   const [code, setCode] = useState(starterCode[defaultLang] || starterCode.python);
   const [output, setOutput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [selectedAnswer, setSelectedAnswer] = useState("");
+  const [answerFeedback, setAnswerFeedback] = useState(null);
+  const isAptitude = moduleName.toLowerCase().includes("aptitude");
 
   // Update default language and template if the module changes
   useEffect(() => {
@@ -249,6 +269,12 @@ function PracticeWorkspace() {
       setQuestionError("");
       setQuestions([]);
       setSelectedId(0);
+
+      if (moduleName.toLowerCase().includes("aptitude")) {
+        setQuestions(fallbackQuestions.aptitude.map((item, index) => ({ ...item, id: index })));
+        setQuestionLoading(false);
+        return;
+      }
 
       try {
         const API_URL =
@@ -349,6 +375,17 @@ function PracticeWorkspace() {
     setOutput("");
   };
 
+  const checkAptitudeAnswer = () => {
+    if (!selectedAnswer || !selectedQuestion) return;
+    const correct = selectedAnswer === selectedQuestion.correctAnswer;
+    setAnswerFeedback({
+      correct,
+      message: correct
+        ? `Correct. ${selectedQuestion.explanation}`
+        : `Not quite. The correct answer is ${selectedQuestion.correctAnswer}. ${selectedQuestion.explanation}`,
+    });
+  };
+
   const reviewCode = async () => {
     if (!code.trim()) {
       setOutput("Enter your code before submitting.");
@@ -411,11 +448,11 @@ function PracticeWorkspace() {
             {company ? `${decodeURIComponent(company)} PREPARATION` : "PRACTICE"}
           </span>
           <h1>{moduleName}</h1>
-          <p>Practice problems in a dedicated workspace.</p>
+          <p>{isAptitude ? "Practice quantitative aptitude with clear multiple-choice questions and explanations." : "Practice problems in a dedicated workspace."}</p>
         </div>
       </header>
 
-      <div className="workspace-layout">
+      <div className={`workspace-layout${isAptitude ? " is-aptitude" : ""}`}>
         <aside className="workspace-sidebar">
           <h2>Questions</h2>
 
@@ -431,6 +468,8 @@ function PracticeWorkspace() {
               onClick={() => {
                 setSelectedId(question.id);
                 setOutput("");
+                setSelectedAnswer("");
+                setAnswerFeedback(null);
               }}
             >
               <strong>{question.title}</strong>
@@ -446,16 +485,50 @@ function PracticeWorkspace() {
             </span>
             <h2>{selectedQuestion.title}</h2>
             <p>{selectedQuestion.description}</p>
-            <h3>Example</h3>
-            <pre>{selectedQuestion.example}</pre>
-            <p className="workspace-note">
-              Submit your solution for AI review. Code execution and automated
-              test-case verification are not enabled.
-            </p>
+            {isAptitude ? (
+              <div className="aptitude-answer-area">
+                <h3>Select your answer</h3>
+                <fieldset className="aptitude-options">
+                  <legend className="sr-only">Answer choices</legend>
+                  {selectedQuestion.options.map((option) => (
+                    <label className={selectedAnswer === option ? "selected" : ""} key={option}>
+                      <input
+                        type="radio"
+                        name={`aptitude-answer-${selectedQuestion.id}`}
+                        value={option}
+                        checked={selectedAnswer === option}
+                        onChange={() => {
+                          setSelectedAnswer(option);
+                          setAnswerFeedback(null);
+                        }}
+                      />
+                      <span>{option}</span>
+                    </label>
+                  ))}
+                </fieldset>
+                <button className="workspace-submit" type="button" disabled={!selectedAnswer} onClick={checkAptitudeAnswer}>
+                  Check answer
+                </button>
+                {answerFeedback && (
+                  <p className={`aptitude-feedback ${answerFeedback.correct ? "correct" : "incorrect"}`} role="status">
+                    {answerFeedback.message}
+                  </p>
+                )}
+              </div>
+            ) : (
+              <>
+                <h3>Example</h3>
+                <pre>{selectedQuestion.example}</pre>
+                <p className="workspace-note">
+                  Submit your solution for AI review. Code execution and automated
+                  test-case verification are not enabled.
+                </p>
+              </>
+            )}
           </section>
         )}
 
-        <section className="workspace-editor">
+        {!isAptitude && <section className="workspace-editor">
           <div className="editor-toolbar">
             <label htmlFor="language-select">Language</label>
             <select
@@ -489,7 +562,7 @@ function PracticeWorkspace() {
           {output && (
             <pre className="workspace-output">{output}</pre>
           )}
-        </section>
+        </section>}
       </div>
     </main>
   );
