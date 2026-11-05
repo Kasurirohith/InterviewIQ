@@ -2,6 +2,7 @@ import os
 import json
 import re
 import secrets
+import hmac
 from datetime import datetime, timezone
 from google import genai
 from dotenv import load_dotenv
@@ -180,6 +181,16 @@ def signup(user: User):
 
 @app.post("/login")
 def login(user: User):
+    admin_password = os.getenv("ADMIN_PASSWORD", "")
+    if admin_password and hmac.compare_digest(user.password, admin_password):
+        return {
+            "success": True,
+            "message": "Admin login successful",
+            "role": "admin",
+            "name": os.getenv("ADMIN_NAME") or user.name or user.email,
+            "email": user.email,
+        }
+
     cursor.execute(
         """
         SELECT * FROM users
@@ -193,6 +204,7 @@ def login(user: User):
         return {
             "success": True,
             "message": "Login Success",
+            "role": "user",
             "name": result[1],
             "email": result[2]
         }
@@ -620,6 +632,37 @@ def create_demo_subscription(request: DemoSubscriptionRequest):
             "payment_reference": reference,
             "activated_at": datetime.now(timezone.utc).isoformat(),
         },
+    }
+
+
+@app.get("/subscriptions/status/{payment_reference}")
+def subscription_status(payment_reference: str):
+    """Return the latest admin-reviewed state for one unguessable demo reference."""
+    cursor.execute(
+        """SELECT plan_name, category, demo_amount, payment_method,
+                  payment_reference, payment_status, status, created_at, updated_at
+           FROM subscriptions WHERE payment_reference=?""",
+        (payment_reference,),
+    )
+    row = cursor.fetchone()
+    if row is None:
+        raise HTTPException(status_code=404, detail="Subscription record not found.")
+
+    columns = [item[0] for item in cursor.description]
+    record = dict(zip(columns, row))
+    return {
+        "subscription": {
+            "name": record["plan_name"],
+            "category": record["category"],
+            "amount": record["demo_amount"],
+            "duration": "30 days",
+            "payment_method": record["payment_method"],
+            "payment_reference": record["payment_reference"],
+            "payment_status": record["payment_status"],
+            "status": record["status"],
+            "created_at": record["created_at"],
+            "updated_at": record["updated_at"],
+        }
     }
 
 
