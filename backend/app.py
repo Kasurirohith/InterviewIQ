@@ -23,13 +23,8 @@ app = FastAPI(
 # ----------------------------
 load_dotenv()
 
-print("Key exists:", bool(os.getenv("GEMINI_API_KEY")))
-print("Key length:", len(os.getenv("GEMINI_API_KEY", "")))
-print("Model:", os.getenv("GEMINI_MODEL"))
-
-ai_client = genai.Client(
-    api_key=os.getenv("GEMINI_API_KEY")
-)
+gemini_api_key = os.getenv("GEMINI_API_KEY")
+ai_client = genai.Client(api_key=gemini_api_key) if gemini_api_key else None
 
 # ----------------------------
 # HELPER: ROBUST JSON PARSER

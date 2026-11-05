@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+import os
 
 from jose import jwt
 from passlib.context import CryptContext
@@ -7,7 +8,9 @@ from passlib.context import CryptContext
 # JWT Configuration
 # ----------------------------
 
-SECRET_KEY = "AI_INTERVIEW_COACH_SECRET_KEY"
+SECRET_KEY = os.environ.get("SECRET_KEY")
+if not SECRET_KEY:
+    raise RuntimeError("SECRET_KEY must be configured before starting the backend.")
 
 ALGORITHM = "HS256"
 
