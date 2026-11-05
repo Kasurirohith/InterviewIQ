@@ -45,6 +45,27 @@
   line-height: 1.7;
 }
 
+.auth-role-choice {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: -12px 0 24px;
+  color: #525252;
+  font-size: 14px;
+}
+
+.auth-role-choice a {
+  color: #171717;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.auth-admin-link {
+  margin-top: 8px;
+}
+
 .auth-form {
   display: flex;
   flex-direction: column;

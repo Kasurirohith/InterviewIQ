@@ -105,6 +105,9 @@ export default function Signup() {
         <p className="auth-switch">
           Already have an account? <Link to="/login">Login</Link>
         </p>
+        <p className="auth-switch auth-admin-link">
+          Administrator? <Link to="/admin/login">Sign in as admin</Link>
+        </p>
       </section>
     </main>
   );

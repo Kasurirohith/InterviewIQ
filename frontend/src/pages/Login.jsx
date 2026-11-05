@@ -59,6 +59,11 @@ export default function Login() {
           <p>Sign in to continue your interview preparation.</p>
         </div>
 
+        <div className="auth-role-choice" aria-label="Choose sign-in type">
+          <span>Signing in as a user?</span>
+          <Link to="/admin/login">Admin sign in</Link>
+        </div>
+
         <form className="auth-form" onSubmit={handleLogin}>
           <label htmlFor="login-email">Email address</label>
           <input
