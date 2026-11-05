@@ -1,5 +1,5 @@
 import "./App.css";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, Link } from "react-router-dom";
 
 import Navbar from "./components/Navbar";
 import CodingPractice from "./components/CodingPractice";
@@ -22,7 +22,28 @@ import Admin from "./pages/Admin";
 function Footer() {
   return (
     <footer className="app-footer">
-      <p>InterviewIQ | Interview preparation and coding practice</p>
+      <div className="footer-main">
+        <div className="footer-brand-block">
+          <Link to="/" className="footer-brand">InterviewIQ</Link>
+          <p>Prepare with purpose. Progress with practice.</p>
+        </div>
+        <div className="footer-column">
+          <h2>Explore</h2>
+          <Link to="/product-companies">Product companies</Link>
+          <Link to="/service-companies">Service companies</Link>
+          <Link to="/coding">Coding practice</Link>
+        </div>
+        <div className="footer-column">
+          <h2>Your account</h2>
+          <Link to="/login">Sign in</Link>
+          <Link to="/signup">Create account</Link>
+          <Link to="/subscriptions">Plans</Link>
+        </div>
+      </div>
+      <div className="footer-bottom">
+        <span>© {new Date().getFullYear()} InterviewIQ</span>
+        <span>Interview preparation and coding practice</span>
+      </div>
     </footer>
   );
 }
@@ -44,7 +65,6 @@ function App() {
     <BrowserRouter>
       <div className="app-layout">
         <Navbar />
-
         <main className="app-main">
           <Routes>
             <Route path="/" element={<Home />} />
@@ -55,37 +75,17 @@ function App() {
             <Route path="/account/subscription" element={<AccountSubscription />} />
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin" element={<Admin />} />
-
-            <Route
-              path="/product-companies"
-              element={<ProductCompanies />}
-            />
-            <Route
-              path="/service-companies"
-              element={<ServiceCompanies />}
-            />
-            <Route
-              path="/company/:name"
-              element={<CompanyDetails />}
-            />
-
-            <Route
-              path="/interview/:name"
-              element={<InterviewPractice />}
-            />
+            <Route path="/product-companies" element={<ProductCompanies />} />
+            <Route path="/service-companies" element={<ServiceCompanies />} />
+            <Route path="/company/:name" element={<CompanyDetails />} />
+            <Route path="/interview/:name" element={<InterviewPractice />} />
             <Route path="/coding" element={<CodingPractice />} />
             <Route path="/report" element={<Report />} />
-
-            <Route
-              path="/practice/:company/:module"
-              element={<PracticeWorkspace />}
-            />
-
+            <Route path="/practice/:company/:module" element={<PracticeWorkspace />} />
             <Route path="/companies" element={<Navigate to="/product-companies" replace />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </main>
-
         <Footer />
       </div>
     </BrowserRouter>
