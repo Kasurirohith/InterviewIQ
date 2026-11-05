@@ -369,7 +369,7 @@ function Home() {
         </section>
 
         <footer className="home-footer">
-          <span>AI Interview Coach</span>
+                    <span>InterviewIQ</span>
           <span>Prepare with purpose. Progress with practice.</span>
         </footer>
       </div>
