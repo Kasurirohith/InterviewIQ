@@ -23,8 +23,10 @@ function Navbar() {
     .navbar-links a:hover,.navbar-login:hover { color:#777; }
     .navbar-account { display:flex; align-items:center; gap:12px; white-space:nowrap; margin-left:auto; }
     .navbar-login { padding:9px 14px; border:1px solid #d4d4d4 !important; border-radius:8px; }
-    .navbar-signup,.navbar-button { padding:9px 15px; border:1px solid #171717; border-radius:8px; background:#171717; color:#fff; text-decoration:none; font-family:inherit; font-size:14px; font-weight:500; cursor:pointer; }
-    .navbar-signup:hover,.navbar-button:hover { background:#333; }
+    .navbar-signup,.navbar-button { padding:9px 15px; border:1px solid #171717; border-radius:8px; background:#171717; color:#fff !important; text-decoration:none; font-family:inherit; font-size:14px; font-weight:500; cursor:pointer; }
+    .navbar-signup { border-color:#d4d4d4; background:#fff; color:#171717 !important; }
+    .navbar-signup:hover { background:#f5f5f5; }
+    .navbar-button:hover { background:#333; }
     .account-menu { position:relative; }
     .account-menu summary { list-style:none; cursor:pointer; }
     .account-menu summary::-webkit-details-marker { display:none; }
