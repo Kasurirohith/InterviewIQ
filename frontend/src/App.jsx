@@ -17,7 +17,7 @@ import PracticeWorkspace from "./pages/PracticeWorkspace";
 function Footer() {
   return (
     <footer className="app-footer">
-      <p>AI-Powered Interview Coach and Career Intelligence Platform</p>
+      <p>InterviewIQ | Interview preparation and coding practice</p>
     </footer>
   );
 }
