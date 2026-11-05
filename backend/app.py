@@ -597,7 +597,7 @@ def create_demo_subscription(request: DemoSubscriptionRequest):
            (name, email, plan_code, plan_name, category, list_price,
             discount_percent, demo_amount, payment_method, payment_reference,
             payment_status, status)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'demo_paid', 'active')""",
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'demo_paid', 'pending')""",
         (
             request.name.strip(), email, request.plan_code, plan["name"],
             plan["category"], plan["list_price"], plan["discount_percent"],
@@ -608,13 +608,13 @@ def create_demo_subscription(request: DemoSubscriptionRequest):
     return {
         "success": True,
         "demo": True,
-        "message": "Demo payment recorded. No money was charged.",
+        "message": "Demo payment recorded for admin review. No money was charged.",
         "subscription": {
             "name": plan["name"],
             "category": plan["category"],
             "amount": plan["amount"],
             "duration": plan["duration"],
-            "status": "active",
+            "status": "pending",
             "payment_status": "demo_paid",
             "payment_method": payment_method,
             "payment_reference": reference,
@@ -650,3 +650,38 @@ def admin_activate_subscription(
         raise HTTPException(status_code=404, detail="Subscription record not found.")
     conn.commit()
     return {"success": True, "status": "active"}
+
+
+@app.post("/admin/subscriptions/{subscription_id}/reject")
+def admin_reject_subscription(
+    subscription_id: int,
+    x_admin_password: str | None = Header(default=None),
+):
+    require_admin(x_admin_password)
+    cursor.execute(
+        "UPDATE subscriptions SET status='rejected', updated_at=CURRENT_TIMESTAMP WHERE id=?",
+        (subscription_id,),
+    )
+    if cursor.rowcount == 0:
+        raise HTTPException(status_code=404, detail="Subscription record not found.")
+    conn.commit()
+    return {"success": True, "status": "rejected"}
+
+
+@app.post("/admin/subscriptions/{subscription_id}/revoke")
+def admin_revoke_subscription(
+    subscription_id: int,
+    x_admin_password: str | None = Header(default=None),
+):
+    require_admin(x_admin_password)
+    cursor.execute(
+        "UPDATE subscriptions SET status='revoked', updated_at=CURRENT_TIMESTAMP WHERE id=? AND status='active'",
+        (subscription_id,),
+    )
+    if cursor.rowcount == 0:
+        cursor.execute("SELECT id FROM subscriptions WHERE id=?", (subscription_id,))
+        if cursor.fetchone() is None:
+            raise HTTPException(status_code=404, detail="Subscription record not found.")
+        raise HTTPException(status_code=409, detail="Only active subscriptions can be revoked.")
+    conn.commit()
+    return {"success": True, "status": "revoked"}

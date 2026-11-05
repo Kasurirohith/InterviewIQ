@@ -45,7 +45,7 @@ export default function DemoCheckout() {
           <div className="checkout-plan-card">
             <span className="subscription-category">{plan.category}</span>
             <h2>{plan.name}</h2>
-            <p>{plan.duration} of access after demo activation</p>
+            <p>{plan.duration} of access after admin approval</p>
             <ul>{plan.features.map((feature) => <li key={feature}>{feature}</li>)}</ul>
           </div>
           <div className="checkout-price-line"><span>Plan price</span><del>{money(plan.listPrice)}</del></div>
@@ -71,7 +71,7 @@ export default function DemoCheckout() {
           <button className="subscription-primary" type="submit" disabled={busy}>
             {busy ? "Recording demo payment…" : `Complete demo payment · ${money(plan.amount)}`}
           </button>
-          <p className="checkout-disclaimer">Submitting records a demo payment as paid and activates the plan automatically. No money is charged.</p>
+          <p className="checkout-disclaimer">Submitting records a simulated payment for admin review. Your plan stays pending until the admin approves it. No money is charged.</p>
         </form>
       </section>
     </main>

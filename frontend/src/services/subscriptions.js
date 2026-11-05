@@ -1,5 +1,5 @@
-const API_URL =
-  import.meta.env.VITE_API_URL || "https://interviewiq-api-3ww1.onrender.com";
+// Subscription/admin routes run on the Render API service that owns their database.
+const API_URL = "https://interviewiq-api-3ww1.onrender.com";
 
 export const subscriptionPlans = {
   starter: {
@@ -56,6 +56,22 @@ export async function loadAdminSubscriptions(adminPassword) {
 
 export async function activateSubscription(id, adminPassword) {
   const response = await fetch(`${API_URL}/admin/subscriptions/${id}/activate`, {
+    method: "POST",
+    headers: { "X-Admin-Password": adminPassword },
+  });
+  return readResponse(response);
+}
+
+export async function rejectSubscription(id, adminPassword) {
+  const response = await fetch(`${API_URL}/admin/subscriptions/${id}/reject`, {
+    method: "POST",
+    headers: { "X-Admin-Password": adminPassword },
+  });
+  return readResponse(response);
+}
+
+export async function revokeSubscription(id, adminPassword) {
+  const response = await fetch(`${API_URL}/admin/subscriptions/${id}/revoke`, {
     method: "POST",
     headers: { "X-Admin-Password": adminPassword },
   });

@@ -88,6 +88,24 @@
 .admin-login { display: grid; gap: 12px; width: min(440px, 100%); margin-top: 26px; padding: 24px; }
 .admin-login label { font-weight: 650; }
 .admin-login input { min-height: 44px; padding: 10px 12px; }
+.admin-login-page { max-width: 760px; }
+.admin-login-page .admin-login { padding: 24px 0; }
+.admin-login-page .admin-login input { width: 100%; box-sizing: border-box; border: 1px solid #d4d4d4; border-radius: 8px; background: #fff; color: #171717; font: inherit; }
+.admin-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; }
+.admin-header h1 { margin: 0; }
+.admin-header-actions,.admin-record-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.admin-summary { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 14px; margin: 24px 0; }
+.admin-summary article { display: grid; gap: 8px; min-height: 82px; padding: 17px; border: 1px solid #e5e5e5; border-radius: 12px; background: #fff; }
+.admin-summary span { color: #666 !important; font-size: 13px; }
+.admin-summary strong { font-size: 26px; }
+.admin-controls { display: grid; grid-template-columns: minmax(0,1fr) 240px; gap: 14px; margin: 24px 0 10px; }
+.admin-controls label { display: grid; gap: 7px; color: #555; font-size: 13px; font-weight: 600; }
+.admin-controls input,.admin-controls select { min-height: 42px; padding: 9px 12px; border: 1px solid #d4d4d4; border-radius: 8px; background: #fff; color: #171717; font: inherit; }
+.admin-record-email { margin: 5px 0; color: #666 !important; font-size: 14px; }
+.admin-record-actions { margin-top: 16px; }
+.status-pending { background: #fff6e6; color: #76520b !important; }
+.status-rejected,.status-revoked { background: #fff0f0; color: #8a3030 !important; }
+.subscription-pending-notice { margin: 18px 0; padding: 14px 16px; border: 1px solid #e2c386; border-radius: 9px; background: #fff9ed; color: #76520b !important; line-height: 1.55; }
 .admin-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 24px 0 14px; }
 .admin-toolbar p { margin: 0; color: #555 !important; }
 .admin-record-list { display: grid; gap: 16px; }
@@ -105,4 +123,7 @@
   .account-subscription-card { padding: 21px; }
   .account-subscription-grid,.admin-record-grid { grid-template-columns: 1fr; }
   .checkout-details > h1 { font-size: 33px; }
+  .admin-header { flex-direction: column; }
+  .admin-summary { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .admin-controls { grid-template-columns: 1fr; }
 }

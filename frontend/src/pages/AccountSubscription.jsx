@@ -17,7 +17,7 @@ export default function AccountSubscription() {
     <main className="subscription-page account-subscription-page">
       <p className="subscription-eyebrow">YOUR ACCOUNT</p>
       <h1>Subscription details</h1>
-      <p className="subscription-lead">Your profile and selected preparation category.</p>
+      <p className="subscription-lead">Your profile, selected plan and its activation status.</p>
       <section className="account-subscription-card">
         <h2>Account information</h2>
         <dl className="account-subscription-grid">
@@ -34,6 +34,9 @@ export default function AccountSubscription() {
             <div><dt>Access period</dt><dd>{current.duration}</dd></div>
           </>}
         </dl>
+        {current?.status === "pending" && <p className="subscription-pending-notice">Your simulated payment has been recorded. The plan will be active after an administrator reviews and approves it.</p>}
+        {current?.status === "rejected" && <p className="subscription-pending-notice">The administrator did not approve this request. You can choose a plan and submit a new demo request.</p>}
+        {current?.status === "revoked" && <p className="subscription-pending-notice">This subscription is no longer active. Contact the administrator if you think this is a mistake.</p>}
         <div className="account-subscription-actions">
           <Link className="subscription-primary link-button" to="/subscriptions">{current ? "Compare plans" : "View plans"}</Link>
           {plan && <p>Your {plan.name} includes {plan.features[0].toLowerCase()} and more.</p>}
