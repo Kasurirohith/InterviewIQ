@@ -421,7 +421,7 @@ function InterviewPractice() {
     return (
       <main className="ip-page">
         <header className="ip-topbar">
-          <strong>AI Interview Coach</strong>
+                    <strong>InterviewIQ</strong>
           <span className="ip-status">Interview ended</span>
         </header>
 
@@ -489,7 +489,7 @@ function InterviewPractice() {
           <button className="ip-text-button" onClick={goBack}>
             Back
           </button>
-          <strong>AI Interview Coach</strong>
+                    <strong>InterviewIQ</strong>
           <span className="ip-status">Ready to start</span>
         </header>
 
@@ -540,7 +540,7 @@ function InterviewPractice() {
         <button className="ip-text-button" onClick={goBack}>
           Back
         </button>
-        <strong>AI Interview Coach</strong>
+                <strong>InterviewIQ</strong>
         <span className="ip-status">Interview in progress</span>
       </header>
 
