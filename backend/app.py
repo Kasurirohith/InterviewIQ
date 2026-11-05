@@ -118,9 +118,7 @@ app.add_middleware(
 
 @app.get("/")
 def home():
-    return {
-        "message": "🚀 AI Interview Coach Backend Running Successfully"
-    }
+    return __import__("fastapi.responses", fromlist=["RedirectResponse"]).RedirectResponse(url="https://interview-iq-pxog.vercel.app/", status_code=307)
 
 
 @app.post("/signup")
