@@ -47,6 +47,13 @@ export async function submitDemoPayment(payload) {
   return readResponse(response);
 }
 
+export async function loadSubscriptionStatus(paymentReference) {
+  const response = await fetch(
+    `${API_URL}/subscriptions/status/${encodeURIComponent(paymentReference)}`,
+  );
+  return readResponse(response);
+}
+
 export async function loadAdminSubscriptions(adminPassword) {
   const response = await fetch(`${API_URL}/admin/subscriptions`, {
     headers: { "X-Admin-Password": adminPassword },
@@ -75,13 +82,5 @@ export async function revokeSubscription(id, adminPassword) {
     method: "POST",
     headers: { "X-Admin-Password": adminPassword },
   });
-  return readResponse(response);
-}
-
-
-export async function loadSubscriptionStatus(paymentReference) {
-  const response = await fetch(
-    `${API_URL}/subscriptions/status/${encodeURIComponent(paymentReference)}`,
-  );
   return readResponse(response);
 }
