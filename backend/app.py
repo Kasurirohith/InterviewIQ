@@ -182,7 +182,7 @@ def signup(user: User):
 @app.post("/login")
 def login(user: User):
     admin_password = os.getenv("ADMIN_PASSWORD", "")
-    if admin_password and hmac.compare_digest(user.password, admin_password):
+    if admin_password and (user.email.strip().casefold() in {os.getenv("ADMIN_EMAIL", "").strip().casefold(), os.getenv("ADMIN_USERNAME", "").strip().casefold()} or user.name.strip().casefold() in {os.getenv("ADMIN_EMAIL", "").strip().casefold(), os.getenv("ADMIN_USERNAME", "").strip().casefold()} or re.sub(r"\D", "", user.email) == re.sub(r"\D", "", os.getenv("ADMIN_PHONE", ""))) and hmac.compare_digest(user.password, admin_password):
         return {
             "success": True,
             "message": "Admin login successful",
