@@ -211,13 +211,169 @@ body.light {
   }
 }
 
-/* Premium edge-to-edge InterviewIQ workspace */
-:root{--page-bg:#f7f6f3;--surface-bg:#fffefa;--surface-secondary:#f0eee9;--border-color:#dfddd7;--text-primary:#171715;--text-secondary:#66645f;--brand-primary:#171715;--brand-hover:#383733;font-family:Inter,Segoe UI,Arial,sans-serif}
-html,body,#root{min-height:100%;background:var(--page-bg)!important;color:var(--text-primary)!important}body{line-height:1.65}.app-layout{min-height:100vh;display:flex;flex-direction:column}.app-main{flex:1 0 auto;width:100%}
-.site-navbar{position:sticky!important;top:0;min-height:76px!important;padding-inline:clamp(20px,4vw,64px)!important;background:rgba(255,254,250,.97)!important;border-bottom-color:var(--border-color)!important;backdrop-filter:blur(14px)}.navbar-brand{font-size:21px!important;letter-spacing:-.04em}.navbar-links{gap:clamp(14px,2.2vw,34px)!important}.navbar-links a,.navbar-login,.navbar-signup{transition:color .18s ease,background-color .18s ease,transform .18s ease}.navbar-links a:hover,.navbar-login:hover,.navbar-signup:hover{color:#81735f!important}
-.home-page{min-height:auto!important;padding:28px clamp(20px,4.4vw,72px) 24px!important;background:var(--page-bg)!important}.home-container{max-width:1600px!important}.home-hero{padding:clamp(72px,10vw,142px) 24px 64px!important;background:radial-gradient(ellipse at 50% 0%,#eeece6 0,var(--page-bg) 68%)}.home-hero h1{letter-spacing:-.055em!important}.home-section{margin-top:clamp(64px,8vw,112px)!important}.home-section-heading{padding-bottom:18px;border-bottom:1px solid var(--border-color)}.resume-panel{background:var(--surface-bg)!important;border-color:var(--border-color)!important;box-shadow:0 16px 45px #1e1b140b!important}.resume-status{background:#f2f0eb!important;border-color:var(--border-color)!important}.home-company-grid{gap:18px!important}.home-company-grid .home-button{min-height:76px;justify-content:space-between;padding-inline:24px;background:var(--surface-bg)!important;border-color:var(--border-color)!important;font-size:15px!important;text-align:left}.home-company-grid .home-button:hover{background:#eeece6!important;border-color:#bcb7ad!important;transform:translateY(-2px)}.home-footer{margin-top:clamp(64px,8vw,112px)!important;padding:24px 0 12px!important;border-color:var(--border-color)!important}
-.companies-overview{min-height:calc(100vh - 76px)!important;padding:clamp(48px,7vw,96px) clamp(20px,4vw,64px)!important;background:var(--page-bg)!important}.companies-overview-header{max-width:980px!important;margin-bottom:clamp(36px,5vw,68px)!important}.companies-overview-grid{max-width:1480px!important;gap:24px!important}.companies-overview .company-card{background:var(--surface-bg)!important;border-color:var(--border-color)!important;box-shadow:0 12px 34px #1e1b140a!important;transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease}.companies-overview .company-card:hover{transform:translateY(-4px);border-color:#aaa398!important;box-shadow:0 18px 38px #1e1b1414!important}
-.subscription-page{width:min(1480px,calc(100% - clamp(32px,8vw,128px)))!important;padding-top:clamp(48px,7vw,88px)!important}.subscription-card,.checkout-plan-card,.checkout-form,.account-subscription-card,.admin-login,.admin-record,.admin-empty{background:var(--surface-bg)!important;border-color:var(--border-color)!important;box-shadow:0 12px 36px #1e1b140d!important}.admin-page{max-width:1560px!important}.admin-summary article{background:var(--surface-bg)!important;border-color:var(--border-color)!important;box-shadow:0 10px 28px #1e1b140a}.admin-record{padding:clamp(22px,3vw,34px)!important}.admin-record-list{gap:20px!important}
-.app-footer{flex-shrink:0;padding:52px clamp(22px,5vw,76px) 20px!important;background:#191917!important;color:#f6f4ef!important;border-top:0!important}.footer-main{display:grid;grid-template-columns:minmax(240px,1.6fr) repeat(2,minmax(160px,.7fr));gap:42px;max-width:1600px;margin:0 auto}.footer-brand{display:inline-block;color:#fff!important;font-size:25px;font-weight:700;letter-spacing:-.04em}.footer-brand-block p{max-width:320px;margin:14px 0;color:#c1beb6!important}.footer-column{display:grid;align-content:start;gap:11px}.footer-column h2{margin:3px 0 8px;color:#b9b4a9!important;font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase}.footer-column a{width:fit-content;color:#f5f3ee!important;font-size:14px;transition:color .18s ease,transform .18s ease}.footer-column a:hover{color:#c8b99e!important;transform:translateX(3px)}.footer-bottom{display:flex;justify-content:space-between;gap:16px;max-width:1600px;margin:42px auto 0;padding-top:18px;border-top:1px solid #393833;color:#b9b6af;font-size:12px}
-button,a,input,select,textarea{-webkit-tap-highlight-color:transparent}button,.home-button,.subscription-primary,.subscription-secondary{transition:transform .18s ease,background-color .18s ease,color .18s ease,border-color .18s ease,box-shadow .18s ease}button:not(:disabled):hover,.subscription-primary:not(:disabled):hover,.subscription-secondary:not(:disabled):hover{box-shadow:0 8px 20px #1717151f}button:not(:disabled):active,a:active{transform:translateY(1px)}:focus-visible{outline:2px solid #8e7752!important;outline-offset:3px}
-@media(max-width:760px){.site-navbar{position:sticky!important;padding:12px 16px!important}.home-page{padding-inline:16px!important}.home-hero{padding:58px 8px 42px!important}.home-company-grid{grid-template-columns:1fr!important}.companies-overview-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}.footer-main{grid-template-columns:repeat(2,minmax(0,1fr));gap:30px 20px}.footer-brand-block{grid-column:1/-1}}@media(max-width:520px){.companies-overview-grid{grid-template-columns:1fr!important}.footer-bottom{flex-direction:column}}@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition-duration:.01ms!important}}
+/* InterviewIQ premium workspace theme */
+:root {
+  --page-bg: #f7f6f3;
+  --surface-bg: #fffefa;
+  --surface-secondary: #f0eee9;
+  --border-color: #dfddd7;
+  --text-primary: #171715;
+  --text-secondary: #66645f;
+  --brand-primary: #171715;
+  --brand-hover: #383733;
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
+}
+
+html, body, #root {
+  min-height: 100%;
+  background: var(--page-bg) !important;
+  color: var(--text-primary) !important;
+}
+
+body { line-height: 1.65; }
+.app-layout { min-height: 100vh; display: flex; flex-direction: column; }
+.app-main { flex: 1 0 auto; width: 100%; }
+#root .app-layout .app-main > * { background-color: var(--page-bg) !important; color: var(--text-primary); }
+
+.site-navbar {
+  position: sticky !important;
+  top: 0;
+  min-height: 76px !important;
+  padding-inline: clamp(20px, 4vw, 64px) !important;
+  background: rgba(255, 254, 250, .96) !important;
+  border-bottom-color: var(--border-color) !important;
+  backdrop-filter: blur(14px);
+}
+.navbar-brand { font-size: 21px !important; letter-spacing: -.04em; }
+.navbar-links { gap: clamp(14px, 2.2vw, 34px) !important; }
+.navbar-links a, .navbar-login, .navbar-signup { transition: color .18s ease, background-color .18s ease, transform .18s ease; }
+.navbar-links a:hover, .navbar-login:hover, .navbar-signup:hover { color: #81735f !important; }
+
+.home-page {
+  min-height: auto !important;
+  padding: 28px clamp(20px, 4.4vw, 72px) 24px !important;
+  background: var(--page-bg) !important;
+}
+.home-container { max-width: 1600px !important; }
+.home-hero {
+  padding: clamp(72px, 10vw, 142px) 24px 64px !important;
+  background: radial-gradient(ellipse at 50% 0%, #eeece6 0, var(--page-bg) 68%);
+}
+.home-hero h1 { letter-spacing: -.055em !important; }
+.home-section { margin-top: clamp(64px, 8vw, 112px) !important; }
+.home-section-heading { padding-bottom: 18px; border-bottom: 1px solid var(--border-color); }
+.resume-panel { background: var(--surface-bg) !important; border-color: var(--border-color) !important; box-shadow: 0 16px 45px rgba(30, 27, 20, .045) !important; }
+.resume-status { background: #f2f0eb !important; border-color: var(--border-color) !important; }
+.home-company-grid { gap: 18px !important; }
+.home-company-grid .home-button { min-height: 76px; justify-content: space-between; padding-inline: 24px; background: var(--surface-bg) !important; border-color: var(--border-color) !important; font-size: 15px !important; text-align: left; }
+.home-company-grid .home-button:hover { background: #eeece6 !important; border-color: #bcb7ad !important; transform: translateY(-2px); }
+.home-footer { margin-top: clamp(64px, 8vw, 112px) !important; padding: 24px 0 12px !important; border-color: var(--border-color) !important; }
+
+.companies-overview { min-height: calc(100vh - 76px) !important; padding: clamp(48px, 7vw, 96px) clamp(20px, 4vw, 64px) !important; background: var(--page-bg) !important; }
+.companies-overview-header { max-width: 980px !important; margin-bottom: clamp(36px, 5vw, 68px) !important; }
+.companies-overview-grid { max-width: 1480px !important; gap: 24px !important; }
+.companies-overview .company-card { background: var(--surface-bg) !important; border-color: var(--border-color) !important; box-shadow: 0 12px 34px rgba(30, 27, 20, .04) !important; transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease; }
+.companies-overview .company-card:hover { transform: translateY(-4px); border-color: #aaa398 !important; box-shadow: 0 18px 38px rgba(30, 27, 20, .08) !important; }
+
+.subscription-page { width: min(1480px, calc(100% - clamp(32px, 8vw, 128px))) !important; padding-top: clamp(48px, 7vw, 88px) !important; }
+.subscription-card, .checkout-plan-card, .checkout-form, .account-subscription-card, .admin-login, .admin-record, .admin-empty { background: var(--surface-bg) !important; border-color: var(--border-color) !important; box-shadow: 0 12px 36px rgba(30, 27, 20, .05) !important; }
+.admin-page { max-width: 1560px !important; }
+.admin-summary article { background: var(--surface-bg) !important; border-color: var(--border-color) !important; box-shadow: 0 10px 28px rgba(30, 27, 20, .04); }
+.admin-record { padding: clamp(22px, 3vw, 34px) !important; }
+.admin-record-list { gap: 20px !important; }
+
+.app-footer {
+  flex-shrink: 0;
+  padding: 52px clamp(22px, 5vw, 76px) 20px !important;
+  background: #191917 !important;
+  color: #f6f4ef !important;
+  border-top: 0 !important;
+}
+.footer-main { display: grid; grid-template-columns: minmax(240px, 1.6fr) repeat(2, minmax(160px, .7fr)); gap: 42px; max-width: 1600px; margin: 0 auto; }
+.footer-brand { display: inline-block; color: #fff !important; font-size: 25px; font-weight: 700; letter-spacing: -.04em; }
+.footer-brand-block p { max-width: 320px; margin: 14px 0; color: #c1beb6 !important; }
+.footer-column { display: grid; align-content: start; gap: 11px; }
+.footer-column h2 { margin: 3px 0 8px; color: #b9b4a9 !important; font-size: 11px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
+.footer-column a { width: fit-content; color: #f5f3ee !important; font-size: 14px; transition: color .18s ease, transform .18s ease; }
+.footer-column a:hover { color: #c8b99e !important; transform: translateX(3px); }
+.footer-bottom { display: flex; justify-content: space-between; gap: 16px; max-width: 1600px; margin: 42px auto 0; padding-top: 18px; border-top: 1px solid #393833; color: #b9b6af; font-size: 12px; }
+
+button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
+button, .home-button, .subscription-primary, .subscription-secondary { transition: transform .18s ease, background-color .18s ease, color .18s ease, border-color .18s ease, box-shadow .18s ease; }
+button:not(:disabled):hover, .subscription-primary:not(:disabled):hover, .subscription-secondary:not(:disabled):hover { box-shadow: 0 8px 20px rgba(23, 23, 21, .12); }
+button:not(:disabled):active, a:active { transform: translateY(1px); }
+:focus-visible { outline: 2px solid #8e7752 !important; outline-offset: 3px; }
+
+@media (max-width: 760px) {
+  .site-navbar { position: sticky !important; padding: 12px 16px !important; }
+  .home-page { padding-inline: 16px !important; }
+  .home-hero { padding: 58px 8px 42px !important; }
+  .home-company-grid { grid-template-columns: 1fr !important; }
+  .companies-overview-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .footer-main { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 30px 20px; }
+  .footer-brand-block { grid-column: 1 / -1; }
+}
+@media (max-width: 520px) {
+  .companies-overview-grid { grid-template-columns: 1fr !important; }
+  .footer-bottom { flex-direction: column; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+}
+
+/* Shared warm, editorial workspace finish */
+:root {
+  --page-bg: #f7f6f3;
+  --surface-bg: #fffefa;
+  --surface-secondary: #f0eee9;
+  --border-color: #dfddd7;
+  --text-primary: #171715;
+  --text-secondary: #66645f;
+  --brand-primary: #171715;
+  --brand-hover: #383733;
+}
+html, body, #root, body, body.light { background: var(--page-bg) !important; color: var(--text-primary) !important; }
+.app-layout, .app-main, .app-main > *, .home-page, .companies-page, .companies-overview, .company-details-page, .practice-workspace, .auth-page, .subscription-page {
+  background-color: var(--page-bg) !important;
+  color: var(--text-primary) !important;
+}
+.home-page, .companies-page, .companies-overview, .company-details-page, .practice-workspace, .auth-page, .subscription-page {
+  width: 100%; box-sizing: border-box;
+}
+.home-container, .companies-overview-grid, .companies-grid, .workspace-header, .workspace-layout {
+  width: min(100%, 1560px) !important;
+}
+.home-choice-card, .resume-panel, .resume-status, .coding-panel,
+.companies-overview .company-card, .companies-page .company-card,
+.workspace-sidebar, .workspace-problem, .workspace-editor, .auth-card,
+.subscription-card, .checkout-plan-card, .checkout-form, .account-subscription-card,
+.admin-login, .admin-record, .admin-empty {
+  background: var(--surface-bg) !important;
+  border-color: var(--border-color) !important;
+  box-shadow: 0 12px 36px rgba(48, 43, 33, .045) !important;
+}
+.home-page, .home-page h1, .home-page h2, .home-page h3,
+.companies-page, .companies-page h1, .companies-page h2, .companies-page h3,
+.companies-overview, .companies-overview h1, .companies-overview h2, .companies-overview h3,
+.practice-workspace, .practice-workspace h1, .practice-workspace h2, .practice-workspace h3,
+.auth-page, .auth-card, .auth-heading h1, .subscription-page, .subscription-page h1,
+.subscription-page h2, .subscription-page h3 { color: var(--text-primary) !important; }
+.home-page p, .companies-page p, .companies-overview p, .practice-workspace p,
+.auth-heading p, .subscription-page p { color: var(--text-secondary) !important; }
+.home-page .resume-status, .home-page .coding-panel, .company-difficulty,
+.workspace-question, .workspace-question:hover, .workspace-problem pre,
+.workspace-output, .aptitude-options label { background-color: var(--surface-secondary) !important; }
+.home-page button, .companies-page button, .companies-overview button,
+.practice-workspace .workspace-submit, .auth-form button, .subscription-primary {
+  min-height: 48px; border-radius: 9px !important;
+}
+.site-navbar { background: rgba(255, 254, 250, .96) !important; }
+.home-page a, .companies-page a, .companies-overview a, .practice-workspace a,
+.auth-page a, .subscription-page a, .site-navbar a { transition: color .18s ease, transform .18s ease; }
+.home-page a:hover, .companies-page a:hover, .companies-overview a:hover,
+.practice-workspace a:hover, .auth-page a:hover, .subscription-page a:hover { color: #81735f !important; }
+@media (max-width: 760px) {
+  .home-company-grid, .companies-overview-grid, .companies-grid { grid-template-columns: 1fr !important; }
+  .workspace-layout, .workspace-layout.is-aptitude { grid-template-columns: 1fr !important; }
+  .auth-card { padding: clamp(22px, 6vw, 36px) !important; }
+}
