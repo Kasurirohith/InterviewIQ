@@ -368,6 +368,36 @@ html, body, #root, body, body.light { background: var(--page-bg) !important; col
   min-height: 48px; border-radius: 9px !important;
 }
 .site-navbar { background: rgba(255, 254, 250, .96) !important; }
+
+/* Keep the Plans page clean and unboxed while retaining a fine divider. */
+#root .app-layout .app-main .subscription-page > .subscription-hero .subscription-demo-notice {
+  padding: 13px 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+#root .app-layout .app-main .subscription-page > .subscription-grid > .subscription-card {
+  padding: 28px 38px;
+  border: 0 !important;
+  border-radius: 0;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+#root .app-layout .app-main .subscription-page > .subscription-grid > .subscription-card + .subscription-card {
+  border-left: 1px solid var(--border-color) !important;
+}
+#root .app-layout .app-main .subscription-page > .subscription-grid > .subscription-card.subscription-card-featured {
+  border-color: var(--border-color) !important;
+  box-shadow: none !important;
+}
+@media (max-width: 760px) {
+  #root .app-layout .app-main .subscription-page > .subscription-grid > .subscription-card { padding: 24px 8px; }
+  #root .app-layout .app-main .subscription-page > .subscription-grid > .subscription-card + .subscription-card {
+    border-top: 1px solid var(--border-color) !important;
+    border-left: 0 !important;
+  }
+}
 .home-page a, .companies-page a, .companies-overview a, .practice-workspace a,
 .auth-page a, .subscription-page a, .site-navbar a { transition: color .18s ease, transform .18s ease; }
 .home-page a:hover, .companies-page a:hover, .companies-overview a:hover,
