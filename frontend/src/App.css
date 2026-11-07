@@ -245,7 +245,7 @@ body { line-height: 1.65; }
   backdrop-filter: blur(14px);
 }
 .navbar-brand { font-size: 21px !important; letter-spacing: -.04em; }
-.navbar-links { gap: clamp(14px, 2.2vw, 34px) !important; }
+.navbar-links { gap: clamp(22px, 3vw, 48px) !important; }
 .navbar-links a, .navbar-login, .navbar-signup { transition: color .18s ease, background-color .18s ease, transform .18s ease; }
 .navbar-links a:hover, .navbar-login:hover, .navbar-signup:hover { color: #81735f !important; }
 
@@ -412,4 +412,3 @@ html, body, #root, body, body.light { background: var(--page-bg) !important; col
 .app-layout:not(.app-layout-admin) h3 {
   text-transform: uppercase !important;
 }
-
