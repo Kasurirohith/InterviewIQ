@@ -103,6 +103,28 @@ function CodingPractice() {
       { name: "Dynamic Programming", problems: 25, link: "https://leetcode.com/tag/dynamic-programming/" },
       { name: "Hash Table", problems: 20, link: "https://leetcode.com/tag/hash-table/" },
     ],
+
+    Zoho: [
+      { name: "Arrays and Strings", problems: 25, link: "https://leetcode.com/tag/array/" },
+      { name: "Sorting and Searching", problems: 20, link: "https://leetcode.com/problemset/" },
+      { name: "Problem Solving", problems: 25, link: "https://leetcode.com/problemset/" },
+      { name: "SQL", problems: 20, link: "https://www.hackerrank.com/domains/sql" },
+      { name: "Aptitude", problems: 20, link: "https://www.indiabix.com/aptitude/questions-and-answers/" },
+    ],
+    Swiggy: [
+      { name: "Arrays and Hashing", problems: 25, link: "https://leetcode.com/tag/array/" },
+      { name: "Trees and Graphs", problems: 25, link: "https://leetcode.com/tag/graph/" },
+      { name: "Dynamic Programming", problems: 25, link: "https://leetcode.com/tag/dynamic-programming/" },
+      { name: "Problem Solving", problems: 20, link: "https://leetcode.com/problemset/" },
+      { name: "SQL", problems: 20, link: "https://www.hackerrank.com/domains/sql" },
+    ],
+    Adobe: [
+      { name: "Arrays and Strings", problems: 25, link: "https://leetcode.com/tag/array/" },
+      { name: "Trees and Graphs", problems: 25, link: "https://leetcode.com/tag/tree/" },
+      { name: "Dynamic Programming", problems: 25, link: "https://leetcode.com/tag/dynamic-programming/" },
+      { name: "Object-Oriented Design", problems: 15, link: "https://www.geeksforgeeks.org/object-oriented-programming-oops-concept-in-java/" },
+      { name: "Problem Solving", problems: 20, link: "https://leetcode.com/problemset/" },
+    ],
   };
 
   const defaultTopics = [

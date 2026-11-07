@@ -24,6 +24,24 @@ function ProductCompanies() {
       description:
         "Prepare for coding, problem-solving, system design, and behavioral interviews.",
     },
+    {
+      name: "Zoho",
+      difficulty: "Medium-Hard",
+      description:
+        "Practice programming fundamentals, problem-solving, SQL, and technical interview questions.",
+    },
+    {
+      name: "Swiggy",
+      difficulty: "Hard",
+      description:
+        "Prepare for software engineering interviews with coding, backend, system design, and behavioral practice.",
+    },
+    {
+      name: "Adobe",
+      difficulty: "Hard",
+      description:
+        "Build interview readiness with data structures, algorithms, object-oriented design, and system design.",
+    },
   ];
 
   const openCompany = (company) => {

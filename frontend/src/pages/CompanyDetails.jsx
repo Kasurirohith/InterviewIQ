@@ -204,6 +204,39 @@ function CompanyDetails() {
         },
       ],
     },
+    Zoho: {
+      type: "Product-Based",
+      role: "Software Developer / Product Engineer",
+      salary: "Varies by role and location",
+      difficulty: "Medium-Hard",
+      focus: ["Programming Fundamentals", "Problem Solving", "Data Structures and Algorithms", "SQL", "Aptitude"],
+      tracks: [
+        { name: "Software Developer", package: "Varies by role" },
+        { name: "Product Engineer", package: "Varies by role" },
+      ],
+    },
+    Swiggy: {
+      type: "Product-Based",
+      role: "Software Engineer / Backend Engineer",
+      salary: "Varies by role and location",
+      difficulty: "Hard",
+      focus: ["Data Structures and Algorithms", "Backend Development", "System Design", "Databases and SQL", "Behavioral Interviews"],
+      tracks: [
+        { name: "Software Engineer", package: "Varies by role" },
+        { name: "Backend Engineer", package: "Varies by role" },
+      ],
+    },
+    Adobe: {
+      type: "Product-Based",
+      role: "Software Engineer",
+      salary: "Varies by role and location",
+      difficulty: "Hard",
+      focus: ["Data Structures and Algorithms", "Object-Oriented Programming", "Problem Solving", "System Design", "Behavioral Interviews"],
+      tracks: [
+        { name: "Software Engineer", package: "Varies by role" },
+        { name: "Software Engineer Intern", package: "Varies by role" },
+      ],
+    },
   };
 
   const matchedKey = Object.keys(companyData).find(
@@ -698,6 +731,10 @@ function getModules(company, track) {
   if (company === "Amazon") {
     return [dsa, programming, system, behavioral];
   }
+
+  if (company === "Zoho") return [aptitude, programming, dsa, sql];
+  if (company === "Swiggy") return [dsa, programming, system, behavioral];
+  if (company === "Adobe") return [dsa, programming, system, communication];
 
   return [programming, sql, communication];
 }

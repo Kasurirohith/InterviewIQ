@@ -46,6 +46,21 @@ function Companies() {
       category: "Service Based",
       description: "Analyst and software engineering interview preparation.",
     },
+    {
+      name: "Zoho",
+      category: "Product Based",
+      description: "Programming fundamentals, problem-solving, SQL, and technical interviews.",
+    },
+    {
+      name: "Swiggy",
+      category: "Product Based",
+      description: "Coding, backend engineering, system design, and behavioral interviews.",
+    },
+    {
+      name: "Adobe",
+      category: "Product Based",
+      description: "Data structures, algorithms, object-oriented design, and system design.",
+    },
   ];
 
   const openCompany = (company) => {
