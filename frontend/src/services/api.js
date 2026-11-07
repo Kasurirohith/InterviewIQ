@@ -1,4 +1,4 @@
-const API_URL = "https://ai-interview-coach-v2-1.onrender.com";
+const API_URL = import.meta.env.VITE_API_URL || "https://interviewiq-api-3ww1.onrender.com";
 
 /* Resume Upload */
 export const uploadResume = async (file) => {
@@ -103,3 +103,4 @@ export const getHistoryData = async (email) => {
 
   return response.json();
 };
+

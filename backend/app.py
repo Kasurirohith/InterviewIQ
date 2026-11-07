@@ -68,10 +68,25 @@ class User(BaseModel):
     email: str
     password: str
 
+class InterviewAnswerSummary(BaseModel):
+    question: str = Field(max_length=2000)
+    category: str = Field(default="technical", max_length=80)
+    score: int = Field(ge=0, le=100)
+    communication_score: int = Field(default=0, ge=0, le=100)
+    clarity_score: int = Field(default=0, ge=0, le=100)
+    relevance_score: int = Field(default=0, ge=0, le=100)
+    feedback: str = Field(default="", max_length=4000)
+    strengths: list[str] = Field(default_factory=list, max_length=10)
+    improvements: list[str] = Field(default_factory=list, max_length=10)
+    ideal_answer: str = Field(default="", max_length=4000)
+
 class InterviewResult(BaseModel):
     email: str
     ats_score: int
     interview_score: int
+    company: str = Field(default="", max_length=120)
+    track: str = Field(default="", max_length=120)
+    answers: list[InterviewAnswerSummary] = Field(default_factory=list, max_length=20)
 
 class FeedbackRequest(BaseModel):
     question: str
@@ -304,10 +319,18 @@ Resume:
 def save_result(data: InterviewResult):
     cursor.execute(
         """
-        INSERT INTO interview_history (email, ats_score, interview_score)
-        VALUES (?, ?, ?)
+        INSERT INTO interview_history
+            (email, ats_score, interview_score, company, track, answers_json)
+        VALUES (?, ?, ?, ?, ?, ?)
         """,
-        (data.email, data.ats_score, data.interview_score)
+        (
+            data.email.strip().lower(),
+            data.ats_score,
+            data.interview_score,
+            data.company.strip(),
+            data.track.strip(),
+            json.dumps([answer.model_dump() for answer in data.answers]),
+        )
     )
     conn.commit()
     return {"success": True, "message": "Result Saved Successfully"}
@@ -317,35 +340,85 @@ def save_result(data: InterviewResult):
 def get_history(email: str):
     cursor.execute(
         """
-        SELECT ats_score, interview_score, created_at
+        SELECT ats_score, interview_score, created_at, company, track, answers_json
         FROM interview_history
-        WHERE email=?
+        WHERE lower(email)=lower(?)
         ORDER BY id DESC
         """,
         (email,)
     )
     rows = cursor.fetchall()
     return [
-        {"ats_score": row[0], "interview_score": row[1], "created_at": row[2]}
+        {
+            "ats_score": row[0],
+            "interview_score": row[1],
+            "created_at": row[2],
+            "company": row[3] or "",
+            "track": row[4] or "",
+            "answers": json.loads(row[5] or "[]"),
+        }
         for row in rows
     ]
 
 
 @app.get("/dashboard/{email}")
 def dashboard(email: str):
-    cursor.execute("SELECT COUNT(*) FROM interview_history WHERE email=?", (email,))
+    cursor.execute("SELECT COUNT(*) FROM interview_history WHERE lower(email)=lower(?)", (email,))
     total = cursor.fetchone()[0]
 
-    cursor.execute("SELECT MAX(interview_score) FROM interview_history WHERE email=?", (email,))
+    cursor.execute("SELECT MAX(interview_score) FROM interview_history WHERE lower(email)=lower(?)", (email,))
     best = cursor.fetchone()[0] or 0
 
-    cursor.execute("SELECT AVG(interview_score) FROM interview_history WHERE email=?", (email,))
+    cursor.execute("SELECT AVG(interview_score) FROM interview_history WHERE lower(email)=lower(?)", (email,))
     avg = cursor.fetchone()[0] or 0
 
+    cursor.execute(
+        """SELECT ats_score, interview_score, created_at, company, track, answers_json
+           FROM interview_history WHERE lower(email)=lower(?) ORDER BY id DESC LIMIT 12""",
+        (email,),
+    )
+    recent = [
+        {
+            "ats_score": row[0],
+            "interview_score": row[1],
+            "created_at": row[2],
+            "company": row[3] or "",
+            "track": row[4] or "",
+            "answers": json.loads(row[5] or "[]"),
+        }
+        for row in cursor.fetchall()
+    ]
+    dimension_totals = {"clarity_score": [], "relevance_score": [], "communication_score": []}
+    category_scores = {}
+    for interview in recent:
+        for answer in interview["answers"]:
+            for key in dimension_totals:
+                score = answer.get(key)
+                if isinstance(score, (int, float)) and score > 0:
+                    dimension_totals[key].append(score)
+            category = (answer.get("category") or "").strip()
+            if category:
+                category_scores.setdefault(category, []).append(answer.get("score", 0))
+    areas = sorted(
+        (
+            {"name": key.replace("_score", "").replace("_", " ").title(), "score": round(sum(scores) / len(scores))}
+            for key, scores in dimension_totals.items() if scores
+        ),
+        key=lambda area: area["score"],
+    )
+    weakest_category = min(
+        category_scores,
+        key=lambda category: sum(category_scores[category]) / len(category_scores[category]),
+        default="",
+    )
+    focus_area = areas[0]["name"] if areas and areas[0]["score"] < 75 else weakest_category
     return {
         "total_interviews": total,
         "best_score": round(best),
-        "average_score": round(avg)
+        "average_score": round(avg),
+        "recent_results": recent,
+        "focus_area": focus_area,
+        "focus_scores": areas,
     }
 
 
@@ -712,7 +785,43 @@ def admin_users(search: str = "", x_admin_password: str | None = Header(default=
         (needle, needle),
     )
     columns = [item[0] for item in cursor.description]
-    return {"users": [dict(zip(columns, row)) for row in cursor.fetchall()]}
+    users = [dict(zip(columns, row)) for row in cursor.fetchall()]
+    for user in users:
+        cursor.execute(
+            """SELECT answers_json FROM interview_history
+               WHERE lower(email)=lower(?) ORDER BY id DESC LIMIT 1""",
+            (user["email"],),
+        )
+        latest = cursor.fetchone()
+        answers = []
+        if latest:
+            try:
+                answers = json.loads(latest[0] or "[]")
+            except (TypeError, json.JSONDecodeError):
+                answers = []
+        averages = {}
+        for dimension, label in (
+            ("clarity_score", "Answer clarity"),
+            ("relevance_score", "Answer relevance"),
+            ("communication_score", "Communication"),
+        ):
+            values = [answer.get(dimension) for answer in answers if isinstance(answer.get(dimension), (int, float)) and answer.get(dimension) > 0]
+            if values:
+                averages[label] = sum(values) / len(values)
+        weak_dimension = min(averages, key=averages.get, default="")
+        if weak_dimension and averages[weak_dimension] < 75:
+            user["focus_area"] = weak_dimension
+            user["next_suggestion"] = f"Practice {weak_dimension.lower()} in the next mock interview"
+        elif user["average_score"] is not None and user["average_score"] < 60:
+            user["focus_area"] = "Overall interview performance"
+            user["next_suggestion"] = "Review recent feedback and retry a mock interview"
+        elif user["interview_count"] < 5:
+            user["focus_area"] = "Build interview consistency"
+            user["next_suggestion"] = "Complete another company-specific mock interview"
+        else:
+            user["focus_area"] = "Advanced practice"
+            user["next_suggestion"] = "Try a harder interview track and compare your score"
+    return {"users": users}
 
 
 @app.post("/admin/subscriptions/{subscription_id}/activate")
@@ -795,3 +904,4 @@ def subscription_status(payment_reference: str):
             "updated_at": record["updated_at"],
         }
     }
+

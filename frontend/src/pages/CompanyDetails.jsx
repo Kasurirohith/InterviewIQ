@@ -2,7 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 
 const API_URL =
-  import.meta.env.VITE_API_URL || "https://ai-interview-coach-web.onrender.com";
+  import.meta.env.VITE_API_URL || "https://interviewiq-api-3ww1.onrender.com";
 
 function CompanyDetails() {
   const { name } = useParams();
@@ -1028,3 +1028,4 @@ const notFound = {
 };
 
 export default CompanyDetails;
+

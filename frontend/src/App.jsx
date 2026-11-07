@@ -13,6 +13,7 @@ import ProductCompanies from "./pages/ProductCompanies";
 import ServiceCompanies from "./pages/ServiceCompanies";
 import InterviewPractice from "./pages/InterviewPractice";
 import PracticeWorkspace from "./pages/PracticeWorkspace";
+import Progress from "./pages/Progress";
 import Subscriptions from "./pages/Subscriptions";
 import DemoCheckout from "./pages/DemoCheckout";
 import AccountSubscription from "./pages/AccountSubscription";
@@ -90,6 +91,7 @@ function AppRoutes() {
             <Route path="/interview/:name" element={<InterviewPractice />} />
             <Route path="/coding" element={<CodingPractice />} />
             <Route path="/report" element={<Report />} />
+            <Route path="/progress" element={<Progress />} />
             <Route path="/practice/:company/:module" element={<PracticeWorkspace />} />
             <Route path="/companies" element={<Navigate to="/product-companies" replace />} />
             <Route path="*" element={<NotFound />} />
@@ -109,3 +111,4 @@ function App() {
 }
 
 export default App;
+

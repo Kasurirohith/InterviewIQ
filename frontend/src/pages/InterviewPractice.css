@@ -378,6 +378,21 @@
   color: #444;
   white-space: pre-wrap;
 }
+.ip-feedback-dimensions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 18px 0; }
+.ip-feedback-dimensions > div { display: grid; gap: 7px; color: #68665f; font-size: 12px; }
+.ip-feedback-dimensions strong { justify-self: end; margin-top: -24px; color: #171715; font-size: 13px; }
+.ip-feedback-dimensions > div > div { height: 6px; overflow: hidden; background: #e9e7e1; }
+.ip-feedback-dimensions i { display: block; height: 100%; background: #393832; }
+.ip-feedback details { margin-top: 12px; padding-top: 12px; border-top: 1px solid #e5e5e5; }
+.ip-feedback summary { cursor: pointer; font-size: 13px; font-weight: 600; }
+.ip-interview-insights { margin-top: 24px; padding: 22px; border: 1px solid #e2e2e2; background: #f8f7f4; }
+.ip-interview-insights h2 { margin: 0 0 8px; font-size: 19px; }
+.ip-interview-insights > p { margin: 0; color: #555; line-height: 1.7; }
+.ip-review-list { display: grid; gap: 8px; margin-top: 18px; }
+.ip-review-list details { padding: 12px 0; border-top: 1px solid #e2e2e2; }
+.ip-review-list summary { cursor: pointer; font-size: 13px; font-weight: 600; }
+.ip-review-list p { color: #555; font-size: 13px; line-height: 1.65; }
+@media (max-width: 620px) { .ip-feedback-dimensions { grid-template-columns: 1fr; } }
 
 .ip-start-card,
 .ip-results,
@@ -659,3 +674,4 @@
     flex-basis: 100%;
   }
 }
+

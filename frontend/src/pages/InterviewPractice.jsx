@@ -4,7 +4,7 @@ import "./InterviewPractice.css";
 
 const API_URL =
   import.meta.env.VITE_API_URL ||
-  "https://ai-interview-coach-web.onrender.com";
+  "https://interviewiq-api-3ww1.onrender.com";
 
 function InterviewPractice() {
   const { name } = useParams();
@@ -18,6 +18,8 @@ function InterviewPractice() {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answer, setAnswer] = useState("");
   const [feedback, setFeedback] = useState("");
+  const [feedbackDetail, setFeedbackDetail] = useState(null);
+  const [answerReviews, setAnswerReviews] = useState([]);
   const [answerScore, setAnswerScore] = useState(null);
   const [totalScore, setTotalScore] = useState(0);
   const [answeredQuestions, setAnsweredQuestions] = useState(0);
@@ -37,6 +39,7 @@ function InterviewPractice() {
   const recognitionRef = useRef(null);
   const endingRef = useRef(false);
   const scoresRef = useRef({ totalScore: 0, answeredQuestions: 0 });
+  const answerReviewsRef = useRef([]);
 
   useEffect(() => {
     scoresRef.current = { totalScore, answeredQuestions };
@@ -143,6 +146,10 @@ function InterviewPractice() {
         ? Math.round((savedTotal / (questions.length * 10)) * 100)
         : 0;
 
+      localStorage.setItem("interviewScore", String(finalScore));
+      localStorage.setItem("interviewCompany", company);
+      localStorage.setItem("interviewTrack", track);
+      localStorage.setItem("latestInterviewAnswers", JSON.stringify(answerReviewsRef.current));
       try {
         if (email) {
           const response = await fetch(`${API_URL}/save-result`, {
@@ -152,6 +159,9 @@ function InterviewPractice() {
               email,
               ats_score: Number(localStorage.getItem("atsScore")) || 0,
               interview_score: finalScore,
+              company,
+              track,
+              answers: answerReviewsRef.current,
             }),
           });
 
@@ -160,9 +170,6 @@ function InterviewPractice() {
           }
         }
 
-        localStorage.setItem("interviewScore", String(finalScore));
-        localStorage.setItem("interviewCompany", company);
-        localStorage.setItem("interviewTrack", track);
       } catch (err) {
         console.error("Could not save interview result:", err);
       }
@@ -296,12 +303,23 @@ function InterviewPractice() {
 
       const result = await response.json();
 
-      const score = Math.max(
-        0,
-        Math.min(10, Number(result.score) || 0)
-      );
-
-      setFeedback(result.feedback || "Answer evaluated successfully.");
+      const score = Math.max(0, Math.min(10, Math.round((Number(result.score) || 0) / 10)));
+      const review = {
+        question: String(question),
+        category: track.toLowerCase() === "general" ? "behavioral" : "technical",
+        score: Math.max(0, Math.min(100, Number(result.score) || 0)),
+        communication_score: Math.max(0, Math.min(100, Number(result.communication_score) || 0)),
+        clarity_score: Math.max(0, Math.min(100, Number(result.clarity_score) || 0)),
+        relevance_score: Math.max(0, Math.min(100, Number(result.relevance_score) || 0)),
+        feedback: result.feedback || "Answer evaluated successfully.",
+        strengths: Array.isArray(result.strengths) ? result.strengths : [],
+        improvements: Array.isArray(result.improvements) ? result.improvements : [],
+        ideal_answer: result.ideal_answer || "",
+      };
+      answerReviewsRef.current = [...answerReviewsRef.current, review];
+      setAnswerReviews(answerReviewsRef.current);
+      setFeedbackDetail(review);
+      setFeedback(review.feedback);
       setAnswerScore(score);
       setTotalScore((previous) => previous + score);
       setAnsweredQuestions((previous) => previous + 1);
@@ -325,6 +343,7 @@ function InterviewPractice() {
       setCurrentQuestion((previous) => previous + 1);
       setAnswer("");
       setFeedback("");
+      setFeedbackDetail(null);
       setAnswerScore(null);
     } else {
       await finishInterview();
@@ -389,6 +408,24 @@ function InterviewPractice() {
   const finalScore = questions.length
     ? Math.round((totalScore / (questions.length * 10)) * 100)
     : 0;
+
+  const focusDimensions = [
+        ["clarity_score", "Clarity"],
+        ["relevance_score", "Relevance"],
+        ["communication_score", "Communication"],
+      ];
+  const focusDimension = answerReviews.length
+    ? focusDimensions
+        .map(([key, label]) => [label, answerReviews.reduce((sum, review) => sum + (review[key] || 0), 0) / answerReviews.length])
+        .sort((a, b) => a[1] - b[1])[0][0]
+    : feedbackDetail
+      ? focusDimensions.sort((a, b) => (feedbackDetail[a[0]] || 0) - (feedbackDetail[b[0]] || 0))[0][1]
+      : "";
+  const focusAdvice = {
+    Clarity: "Structure your answer with a clear opening, key points, and a short conclusion.",
+    Relevance: "Connect each point directly to the question and add a specific example.",
+    Communication: "Practise concise answers aloud and explain technical terms simply.",
+  };
 
   const wordCount = answer.trim() ? answer.trim().split(/\s+/).length : 0;
 
@@ -476,7 +513,25 @@ function InterviewPractice() {
             >
               View report
             </button>
+            <button className="ip-button" onClick={() => navigate("/progress")}>
+              View progress
+            </button>
           </div>
+          {answerReviews.length > 0 && (
+            <section className="ip-interview-insights">
+              <h2>Your next practice focus</h2>
+              <p><strong>{focusDimension}:</strong> {focusAdvice[focusDimension]}</p>
+              <div className="ip-review-list">
+                {answerReviews.map((review, index) => (
+                  <details key={`${index}-${review.question}`}>
+                    <summary>Question {index + 1} · {review.score}/100</summary>
+                    <p>{review.feedback}</p>
+                    {review.improvements.length > 0 && <p><strong>Try next:</strong> {review.improvements.join(" · ")}</p>}
+                  </details>
+                ))}
+              </div>
+            </section>
+          )}
         </section>
       </main>
     );
@@ -659,6 +714,14 @@ function InterviewPractice() {
                 <strong>{answerScore}/10</strong>
               </div>
               <p>{feedback}</p>
+              {feedbackDetail && <div className="ip-feedback-dimensions">
+                {[["Clarity", feedbackDetail.clarity_score], ["Relevance", feedbackDetail.relevance_score], ["Communication", feedbackDetail.communication_score]].map(([label, score]) => (
+                  <div key={label}><span>{label}</span><strong>{score}%</strong><div><i style={{ width: `${score}%` }} /></div></div>
+                ))}
+              </div>}
+              {feedbackDetail?.strengths?.length > 0 && <p><strong>What worked:</strong> {feedbackDetail.strengths.join(" · ")}</p>}
+              {feedbackDetail?.improvements?.length > 0 && <p><strong>Improve next:</strong> {feedbackDetail.improvements.join(" · ")}</p>}
+              {feedbackDetail?.ideal_answer && <details><summary>View a stronger example answer</summary><p>{feedbackDetail.ideal_answer}</p></details>}
             </section>
           )}
         </section>
@@ -727,3 +790,4 @@ function InterviewPractice() {
 }
 
 export default InterviewPractice;
+

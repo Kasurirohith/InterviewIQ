@@ -279,7 +279,7 @@ function PracticeWorkspace() {
       try {
         const API_URL =
           import.meta.env.VITE_API_URL ||
-          "https://ai-interview-coach-v2-1.onrender.com";
+          "https://interviewiq-api-3ww1.onrender.com";
 
         const historyKey = `practiceQuestions:${moduleName}`;
         const previousQuestions = JSON.parse(
@@ -403,7 +403,7 @@ function PracticeWorkspace() {
     try {
       const API_URL =
         import.meta.env.VITE_API_URL ||
-        "https://ai-interview-coach-v2-1.onrender.com";
+        "https://interviewiq-api-3ww1.onrender.com";
 
       const response = await fetch(`${API_URL}/feedback`, {
         method: "POST",
@@ -569,3 +569,4 @@ function PracticeWorkspace() {
 }
 
 export default PracticeWorkspace;
+

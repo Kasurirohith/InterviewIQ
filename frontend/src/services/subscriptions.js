@@ -1,5 +1,5 @@
 // Subscription/admin routes run on the Render API service that owns their database.
-const API_URL = "https://interviewiq-api-3ww1.onrender.com";
+const API_URL = import.meta.env.VITE_API_URL || "https://interviewiq-api-3ww1.onrender.com";
 
 export const subscriptionPlans = {
   starter: {
@@ -98,3 +98,4 @@ export async function revokeSubscription(id, adminPassword) {
   });
   return readResponse(response);
 }
+

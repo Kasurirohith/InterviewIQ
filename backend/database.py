@@ -33,6 +33,18 @@ CREATE TABLE IF NOT EXISTS interview_history (
 )
 """)
 
+# Keep detailed interview insights for the progress dashboard. Migrate existing
+# SQLite databases in place so previously saved score history remains intact.
+for column_name, column_type in (
+    ("company", "TEXT NOT NULL DEFAULT ''"),
+    ("track", "TEXT NOT NULL DEFAULT ''"),
+    ("answers_json", "TEXT NOT NULL DEFAULT '[]'"),
+):
+    cursor.execute("PRAGMA table_info(interview_history)")
+    existing_columns = {row[1] for row in cursor.fetchall()}
+    if column_name not in existing_columns:
+        cursor.execute(f"ALTER TABLE interview_history ADD COLUMN {column_name} {column_type}")
+
 # Demo subscription records. Payment information stored here is limited to the
 # simulated payment method and a non-sensitive demo reference.
 cursor.execute("""
@@ -57,3 +69,4 @@ CREATE TABLE IF NOT EXISTS subscriptions (
 
 # Save the table structures immediately
 conn.commit()
+
