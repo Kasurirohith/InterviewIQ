@@ -412,3 +412,10 @@ html, body, #root, body, body.light { background: var(--page-bg) !important; col
 .app-layout:not(.app-layout-admin) h3 {
   text-transform: uppercase !important;
 }
+
+#root .app-layout:not(.app-layout-admin) .app-main h1 {
+  font-size: clamp(28px, 3.2vw, 42px) !important;
+  line-height: 1.2 !important;
+  letter-spacing: -.035em;
+}
+
