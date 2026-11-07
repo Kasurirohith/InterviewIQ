@@ -410,5 +410,6 @@ html, body, #root, body, body.light { background: var(--page-bg) !important; col
 .app-layout:not(.app-layout-admin) h1,
 .app-layout:not(.app-layout-admin) h2,
 .app-layout:not(.app-layout-admin) h3 {
-  text-transform: capitalize;
+  text-transform: uppercase !important;
 }
+
