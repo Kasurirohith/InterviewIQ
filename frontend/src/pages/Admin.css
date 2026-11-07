@@ -114,6 +114,20 @@
 .admin-page .admin-record { border: 1px solid var(--admin-line); border-radius: 0; background: #fff; box-shadow: none; }
 .admin-page .admin-record { padding: 25px; }
 .admin-page .admin-footnote { color: #8c8881; font-size: 12px; }
+.admin-summary-three { grid-template-columns: repeat(3,minmax(0,1fr)); }
+.admin-overview-note { margin-top: 24px; padding: 24px; border: 1px solid var(--admin-line); background: #fff; }
+.admin-overview-note h2 { margin: 0 0 10px; font-size: 18px; font-weight: 500; }
+.admin-overview-note p { margin: 0; color: var(--admin-muted); }
+.admin-users-search { grid-template-columns: minmax(0,1fr); }
+.admin-user-count { margin: 24px 0 12px; color: var(--admin-muted); }
+.admin-table-wrap { overflow-x: auto; border: 1px solid var(--admin-line); background: #fff; }
+.admin-users-table { width: 100%; border-collapse: collapse; text-align: left; }
+.admin-users-table th, .admin-users-table td { padding: 16px; border-bottom: 1px solid var(--admin-line); vertical-align: top; }
+.admin-users-table th { color: var(--admin-muted); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+.admin-users-table td { min-width: 145px; font-size: 13px; }
+.admin-users-table td:first-child { min-width: 190px; }
+.admin-users-table td strong, .admin-users-table td span { display: block; }
+.admin-users-table td span { margin-top: 6px; color: var(--admin-muted); font-size: 12px; }
 
 .admin-login-page.subscription-page {
   max-width: 520px;
@@ -141,4 +155,5 @@
   .admin-topbar { height: 74px; padding: 0 18px; }
   .admin-page.subscription-page { padding: 38px 18px 48px; }
   .admin-page .admin-header { flex-direction: column; }
+  .admin-summary-three { grid-template-columns: 1fr; }
 }
