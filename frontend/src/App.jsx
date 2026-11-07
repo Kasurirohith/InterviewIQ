@@ -1,5 +1,5 @@
 import "./App.css";
-import { BrowserRouter, Routes, Route, Navigate, Link } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, Link, useLocation } from "react-router-dom";
 
 import Navbar from "./components/Navbar";
 import CodingPractice from "./components/CodingPractice";
@@ -17,6 +17,7 @@ import Subscriptions from "./pages/Subscriptions";
 import DemoCheckout from "./pages/DemoCheckout";
 import AccountSubscription from "./pages/AccountSubscription";
 import Admin from "./pages/Admin";
+import AdminLogin from "./pages/AdminLogin";
 
 function Footer() {
   return (
@@ -59,12 +60,14 @@ function NotFound() {
   );
 }
 
-function App() {
+function AppRoutes() {
+  const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith("/admin");
+
   return (
-    <BrowserRouter>
-      <div className="app-layout">
-        <Navbar />
-        <main className="app-main">
+      <div className={`app-layout${isAdminRoute ? " app-layout-admin" : ""}`}>
+        {!isAdminRoute && <Navbar />}
+        <main className={`app-main${isAdminRoute ? " app-main-admin" : ""}`}>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
@@ -72,7 +75,7 @@ function App() {
             <Route path="/subscriptions" element={<Subscriptions />} />
             <Route path="/subscription/checkout/:planCode" element={<DemoCheckout />} />
             <Route path="/account/subscription" element={<AccountSubscription />} />
-            <Route path="/admin/login" element={<Navigate to="/login" replace />} />
+            <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/product-companies" element={<ProductCompanies />} />
             <Route path="/service-companies" element={<ServiceCompanies />} />
@@ -85,8 +88,15 @@ function App() {
             <Route path="*" element={<NotFound />} />
           </Routes>
         </main>
-        <Footer />
+        {!isAdminRoute && <Footer />}
       </div>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AppRoutes />
     </BrowserRouter>
   );
 }

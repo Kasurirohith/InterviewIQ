@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   activateSubscription,
   loadAdminSubscriptions,
@@ -7,6 +7,7 @@ import {
   revokeSubscription,
 } from "../services/subscriptions";
 import "./Subscriptions.css";
+import "./Admin.css";
 
 const ADMIN_SESSION_KEY = "interviewiqAdminPassword";
 const money = (value) => `₹${Number(value).toFixed(Number(value) % 1 ? 2 : 0)}`;
@@ -30,7 +31,7 @@ export default function Admin() {
       setError(requestError.message || "Could not load subscription records.");
       if (requestError.message?.includes("Invalid admin password")) {
         sessionStorage.removeItem(ADMIN_SESSION_KEY);
-        navigate("/login", { replace: true });
+        navigate("/admin/login", { replace: true });
       }
     } finally {
       setBusy(false);
@@ -39,7 +40,7 @@ export default function Admin() {
 
   useEffect(() => {
     if (!password) {
-      navigate("/login", { replace: true });
+      navigate("/admin/login", { replace: true });
       return;
     }
     refresh();
@@ -74,13 +75,28 @@ export default function Admin() {
 
   const logout = () => {
     sessionStorage.removeItem(ADMIN_SESSION_KEY);
-    navigate("/login", { replace: true });
+    navigate("/admin/login", { replace: true });
   };
 
   if (!password) return null;
 
   return (
-    <main className="subscription-page admin-page">
+    <div className="admin-shell">
+      <aside className="admin-sidebar" aria-label="Admin navigation">
+        <Link className="admin-brand" to="/admin"><span>INTERVIEWIQ</span><small>ADMINISTRATION</small></Link>
+        <div className="admin-nav-group">
+          <p>Manage</p>
+          <a className="admin-nav-link" href="#overview"><span aria-hidden="true">▦</span>Dashboard</a>
+          <a className="admin-nav-link is-active" href="#subscriptions"><span aria-hidden="true">▤</span>Subscriptions</a>
+        </div>
+        <div className="admin-sidebar-bottom">
+          <Link className="admin-nav-link" to="/"><span aria-hidden="true">←</span>Back to store</Link>
+          <button className="admin-nav-link" type="button" onClick={logout}><span aria-hidden="true">↪</span>Sign out</button>
+        </div>
+      </aside>
+      <div className="admin-main">
+        <div className="admin-topbar"><div><span>INTERVIEWIQ</span><strong>Admin Panel</strong></div><div className="admin-profile"><span>Administrator</span><b>Admin</b></div></div>
+        <main className="subscription-page admin-page" id="overview">
       <header className="admin-header">
         <div>
           <p className="subscription-eyebrow">INTERVIEWIQ ADMIN CONSOLE</p>
@@ -95,7 +111,7 @@ export default function Admin() {
 
       <p className="subscription-demo-notice">Demo only: card and UPI choices are simulated. These records are not real payments, and no banking details are collected.</p>
 
-      <section className="admin-summary" aria-label="Subscription overview">
+      <section className="admin-summary" aria-label="Subscription overview" id="subscriptions">
         <article><span>All submissions</span><strong>{records.length}</strong></article>
         <article><span>Waiting for approval</span><strong>{pendingCount}</strong></article>
         <article><span>Active plans</span><strong>{activeCount}</strong></article>
@@ -156,6 +172,8 @@ export default function Admin() {
         </div>
       )}
       <p className="admin-footnote">Admin access is managed privately by the project owner. This page has no public admin sign-up.</p>
-    </main>
+        </main>
+      </div>
+    </div>
   );
 }

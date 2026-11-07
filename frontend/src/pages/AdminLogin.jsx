@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { loadAdminSubscriptions } from "../services/subscriptions";
 import "./Subscriptions.css";
+import "./Admin.css";
 
 const ADMIN_SESSION_KEY = "interviewiqAdminPassword";
 
