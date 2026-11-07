@@ -46,7 +46,7 @@ function Home() {
       <div className="home-container">
         <section className="home-hero">
           <span className="home-eyebrow">YOUR CAREER PREPARATION WORKSPACE</span>
-          <h1>Prepare smarter.<br /><span>Interview with confidence.</span></h1>
+          <h1>Prepare Smarter.<br /><span>Interview With Confidence.</span></h1>
           <p className="home-hero-description">
             Everything you need to prepare for placements, improve your resume and practise interviews — all in one place.
           </p>
@@ -65,7 +65,7 @@ function Home() {
           <div className="home-section-heading">
             <div>
               <span className="home-eyebrow">RESUME</span>
-              <h2>Make your resume stand out.</h2>
+              <h2>Make Your Resume Stand Out.</h2>
               <p>Upload your resume to get started with your resume preparation.</p>
             </div>
             <span className="home-section-index">01 / 02</span>
@@ -121,7 +121,7 @@ function Home() {
           <div className="home-section-heading">
             <div>
               <span className="home-eyebrow">COMPANY PREPARATION</span>
-              <h2>Prepare for your target company.</h2>
+              <h2>Prepare For Your Target Company.</h2>
               <p>Choose a preparation path that matches your placement goals.</p>
             </div>
             <span className="home-section-index">02 / 02</span>
