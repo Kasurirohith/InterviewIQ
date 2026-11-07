@@ -12,7 +12,7 @@ export default function Subscriptions() {
     <main className="subscription-page">
       <section className="subscription-hero">
         <p className="subscription-eyebrow">INTERVIEWIQ PLANS</p>
-        <h1>Choose your preparation plan</h1>
+        <h1>Choose Your Preparation Plan</h1>
         <p>Clear features, one simple demo payment, and a plan that matches your goals.</p>
         <div className="subscription-demo-notice" role="note">
           College project demo: card and UPI options are simulated. No real payment is taken.
@@ -38,7 +38,7 @@ export default function Subscriptions() {
               <span>/ {plan.duration}</span>
             </div>
             <p className="subscription-price-note">Demo price after {plan.discountPercent}% discount</p>
-            <h3>What is included</h3>
+            <h3>What Is Included</h3>
             <ul>{plan.features.map((feature) => <li key={feature}>{feature}</li>)}</ul>
             <button
               type="button"
@@ -52,7 +52,7 @@ export default function Subscriptions() {
       </section>
 
       <section className="subscription-help">
-        <h2>Already have a plan?</h2>
+        <h2>Already Have a Plan?</h2>
         <p>Open your account to see the selected plan, category, payment reference, and activation status.</p>
         <Link to="/account/subscription">View my subscription</Link>
       </section>
