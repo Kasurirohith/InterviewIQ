@@ -105,7 +105,7 @@ export default function Admin() {
         </div>
         <div className="admin-header-actions">
           <button className="subscription-secondary" type="button" onClick={refresh} disabled={busy}>Refresh records</button>
-          <button className="subscription-secondary" type="button" onClick={logout}>Sign out</button>
+          
         </div>
       </header>
 
