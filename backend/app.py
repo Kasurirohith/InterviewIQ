@@ -679,6 +679,42 @@ def admin_subscriptions(x_admin_password: str | None = Header(default=None)):
     return {"subscriptions": [dict(zip(columns, row)) for row in cursor.fetchall()]}
 
 
+@app.get("/admin/overview")
+def admin_overview(x_admin_password: str | None = Header(default=None)):
+    require_admin(x_admin_password)
+    cursor.execute("SELECT COUNT(*) FROM users")
+    user_count = cursor.fetchone()[0]
+    cursor.execute("SELECT COUNT(*) FROM subscriptions")
+    subscription_count = cursor.fetchone()[0]
+    cursor.execute("SELECT status, COUNT(*) FROM subscriptions GROUP BY status")
+    statuses = dict(cursor.fetchall())
+    return {
+        "users": user_count,
+        "subscriptions": subscription_count,
+        "active_subscriptions": statuses.get("active", 0),
+        "pending_subscriptions": statuses.get("pending", 0),
+    }
+
+
+@app.get("/admin/users")
+def admin_users(search: str = "", x_admin_password: str | None = Header(default=None)):
+    require_admin(x_admin_password)
+    needle = f"%{search.strip().lower()}%"
+    cursor.execute(
+        """SELECT u.id, COALESCE(u.name, '') AS name, u.email,
+                  (SELECT COUNT(*) FROM interview_history h WHERE lower(h.email)=lower(u.email)) AS interview_count,
+                  (SELECT MAX(h.created_at) FROM interview_history h WHERE lower(h.email)=lower(u.email)) AS last_interview_at,
+                  (SELECT ROUND(AVG(h.interview_score), 1) FROM interview_history h WHERE lower(h.email)=lower(u.email)) AS average_score,
+                  (SELECT s.plan_name FROM subscriptions s WHERE lower(s.email)=lower(u.email) ORDER BY s.id DESC LIMIT 1) AS plan_name,
+                  (SELECT s.status FROM subscriptions s WHERE lower(s.email)=lower(u.email) ORDER BY s.id DESC LIMIT 1) AS subscription_status
+           FROM users u WHERE lower(COALESCE(u.name, '')) LIKE ? OR lower(u.email) LIKE ?
+           ORDER BY u.id DESC""",
+        (needle, needle),
+    )
+    columns = [item[0] for item in cursor.description]
+    return {"users": [dict(zip(columns, row)) for row in cursor.fetchall()]}
+
+
 @app.post("/admin/subscriptions/{subscription_id}/activate")
 def admin_activate_subscription(
     subscription_id: int,
