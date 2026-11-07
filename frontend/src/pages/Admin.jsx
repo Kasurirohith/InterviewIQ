@@ -90,7 +90,7 @@ export default function Admin() {
           <a className="admin-nav-link is-active" href="#subscriptions"><span aria-hidden="true">▤</span>Subscriptions</a>
         </div>
         <div className="admin-sidebar-bottom">
-          <Link className="admin-nav-link" to="/"><span aria-hidden="true">←</span>Back to store</Link>
+          
           <button className="admin-nav-link" type="button" onClick={logout}><span aria-hidden="true">↪</span>Sign out</button>
         </div>
       </aside>
