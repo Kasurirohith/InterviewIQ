@@ -18,6 +18,9 @@ import DemoCheckout from "./pages/DemoCheckout";
 import AccountSubscription from "./pages/AccountSubscription";
 import Admin from "./pages/Admin";
 import AdminLogin from "./pages/AdminLogin";
+import AdminOverview from "./pages/AdminOverview";
+import AdminUsers from "./pages/AdminUsers";
+import AdminSubscriptions from "./pages/AdminSubscriptions";
 
 function Footer() {
   return (
@@ -76,7 +79,11 @@ function AppRoutes() {
             <Route path="/subscription/checkout/:planCode" element={<DemoCheckout />} />
             <Route path="/account/subscription" element={<AccountSubscription />} />
             <Route path="/admin/login" element={<AdminLogin />} />
-            <Route path="/admin" element={<Admin />} />
+            <Route path="/admin" element={<Admin />}>
+              <Route index element={<AdminOverview />} />
+              <Route path="users" element={<AdminUsers />} />
+              <Route path="subscriptions" element={<AdminSubscriptions />} />
+            </Route>
             <Route path="/product-companies" element={<ProductCompanies />} />
             <Route path="/service-companies" element={<ServiceCompanies />} />
             <Route path="/company/:name" element={<CompanyDetails />} />
