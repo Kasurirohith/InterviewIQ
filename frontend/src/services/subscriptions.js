@@ -61,6 +61,20 @@ export async function loadAdminSubscriptions(adminPassword) {
   return readResponse(response);
 }
 
+export async function loadAdminOverview(adminPassword) {
+  const response = await fetch(`${API_URL}/admin/overview`, {
+    headers: { "X-Admin-Password": adminPassword },
+  });
+  return readResponse(response);
+}
+
+export async function loadAdminUsers(adminPassword, search = "") {
+  const response = await fetch(`${API_URL}/admin/users?search=${encodeURIComponent(search)}`, {
+    headers: { "X-Admin-Password": adminPassword },
+  });
+  return readResponse(response);
+}
+
 export async function activateSubscription(id, adminPassword) {
   const response = await fetch(`${API_URL}/admin/subscriptions/${id}/activate`, {
     method: "POST",
