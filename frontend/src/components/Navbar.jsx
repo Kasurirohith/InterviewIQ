@@ -19,7 +19,7 @@ function Navbar() {
   };
   const styles = `
     .site-navbar { width:100%; min-height:68px; padding:12px 28px; display:flex; align-items:center; justify-content:space-between; gap:24px; background:#fff; border-bottom:1px solid #e5e5e5; position:sticky; top:0; z-index:10; }
-    .navbar-brand { display:flex; align-items:center; gap:10px; color:#171717; text-decoration:none; font-size:19px; font-weight:700; white-space:nowrap; margin-right:auto; }\r\n    .navbar-brand-mark { width:30px; height:30px; flex:none; color:#171717; }
+    .navbar-brand { display:flex; align-items:center; gap:10px; color:#171717; text-decoration:none; font-size:19px; font-weight:700; white-space:nowrap; margin-right:auto; }\r\n    .navbar-brand-mark { width:42px; height:42px; flex:none; color:#171717; }
     .site-navbar .navbar-brand,.site-navbar .navbar-links a,.site-navbar .navbar-login,.site-navbar .navbar-signup { text-transform:uppercase; }
     .navbar-links { display:flex; align-items:center; justify-content:center; gap:24px; border:0 !important; box-shadow:none !important; }
     .navbar-links a,.navbar-login { color:#333; text-decoration:none; font-size:16px; font-weight:500; border:0 !important; box-shadow:none !important; }
