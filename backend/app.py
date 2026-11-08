@@ -12,7 +12,7 @@ from fastapi import HTTPException, Header
 from fastapi.responses import StreamingResponse
 import tempfile
 import pdfplumber
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
@@ -279,89 +279,173 @@ def login(user: User):
 
 
 @app.post("/upload-resume")
-async def upload_resume(file: UploadFile = File(...)):
+async def upload_resume(
+    file: UploadFile = File(...),
+    target_role: str = Form(default=""),
+    job_description: str = Form(default=""),
+):
     temp_path = None
     try:
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_file:
-            temp_file.write(await file.read())
-            temp_path = temp_file.name
+        filename = (file.filename or "").lower()
+        if not filename.endswith((".pdf", ".docx")):
+            raise HTTPException(status_code=400, detail="Please upload a text-based PDF or DOCX resume.")
 
-        resume_text = ""
-        with pdfplumber.open(temp_path) as pdf:
-            for page in pdf.pages:
-                text = page.extract_text()
-                if text:
-                    resume_text += text + "\n"
+        content = await file.read()
+        if not content:
+            raise HTTPException(status_code=400, detail="The uploaded resume is empty.")
+        if len(content) > 8 * 1024 * 1024:
+            raise HTTPException(status_code=413, detail="Please upload a resume smaller than 8 MB.")
 
-        resume_lower = resume_text.lower()
-        skills = [
-            "python", "java", "sql", "react", "machine learning",
-            "html", "css", "javascript", "power bi", "excel"
-        ]
+        if filename.endswith(".pdf"):
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_file:
+                temp_file.write(content)
+                temp_path = temp_file.name
+            with pdfplumber.open(temp_path) as pdf:
+                resume_text = "\n".join(page.extract_text() or "" for page in pdf.pages)
+        else:
+            from docx import Document
+            document = Document(io.BytesIO(content))
+            paragraphs = [paragraph.text for paragraph in document.paragraphs]
+            table_text = [cell.text for table in document.tables for row in table.rows for cell in row.cells]
+            resume_text = "\n".join([*paragraphs, *table_text])
 
-        detected_skills = []
-        missing_skills = []
-        score = 0
-
-        for skill in skills:
-            if skill in resume_lower:
-                detected_skills.append(skill)
-                score += 10
-            else:
-                missing_skills.append(skill)
+        resume_text = resume_text.strip()
+        if not resume_text:
+            raise HTTPException(status_code=400, detail="No readable text was found. Please upload a text-based PDF or DOCX file.")
 
         if not ai_client:
-            raise HTTPException(
-                status_code=503,
-                detail="AI is not configured. Set GEMINI_API_KEY in backend/.env."
-            )
+            raise HTTPException(status_code=503, detail="AI resume review is not configured on the backend.")
 
         prompt = f"""
-You are an expert technical recruiter and interview coach.
-Analyze the following resume text and generate 10 tailored interview questions based on the candidate's skills, experience, and background.
-Return ONLY valid JSON with this exact structure:
+You are a careful resume reviewer. Compare the candidate's resume with the target role and job description.
+Do not invent skills, work, education, achievements, or results. List a missing skill only when the job description asks for it and the resume has no clear evidence. If no job description is supplied, return an empty required_skills list and do not claim to know role-specific gaps.
+
+Return ONLY valid JSON:
 {{
-  "questions": [
-    "Question 1",
-    "Question 2"
-  ]
+  "role": "target role or best-fit role inferred from the documents",
+  "required_skills": [{{"name":"skill explicitly required by the job description","priority":"high|medium|low","job_evidence":"exact short quote from the job description"}}],
+  "resume_matches": [{{"skill":"same skill name","evidence":"exact short quote from the resume that proves it"}}],
+  "strengths": [{{"title":"short strength","evidence":"exact short quote from the resume"}}],
+  "improvements": [{{"title":"specific issue","action":"truthful, actionable next step","section":"section to update"}}],
+  "questions": ["10 interview questions grounded in this resume and role"]
 }}
 
-Resume:
-{resume_text[:25000]}
+Rules: At most 15 distinct important job skills, only with verbatim job evidence. A resume match counts only when the exact skill name is explicitly written in the quoted resume evidence; do not count synonyms. At most 5 strengths, each with verbatim resume evidence. At most 6 specific improvements. Do not tell the candidate to claim a skill or metric they do not have. For missing skills, advise learning/practising first and adding genuine project evidence only after they have done the work. Questions should refer to actual resume content where possible.
+
+Target role: {target_role.strip()[:160] or "Infer from the documents"}
+Job description: {job_description.strip()[:18000] or "Not supplied"}
+Resume: {resume_text[:25000]}
 """
         response = ai_client.models.generate_content(
             model=os.getenv("GEMINI_MODEL", "gemini-2.5-flash"),
-            contents=prompt
+            contents=prompt,
         )
-        
         data = extract_json_from_response(response.text)
-        questions = data.get("questions", [])
-        questions = [
-            str(q).strip()
-            for q in questions
-            if isinstance(q, str) and q.strip()
-        ]
+        questions = [str(q).strip() for q in data.get("questions", []) if isinstance(q, str) and q.strip()]
         if not questions:
             raise ValueError("No valid questions were generated.")
+
+        def has_source_quote(source, quote):
+            return isinstance(quote, str) and len(quote.strip()) >= 4 and quote.strip().casefold() in source.casefold()
+
+        required_skills = []
+        for item in data.get("required_skills", [])[:15]:
+            if not isinstance(item, dict) or not job_description.strip():
+                continue
+            name = str(item.get("name", "")).strip()[:100]
+            evidence = str(item.get("job_evidence", "")).strip()[:300]
+            if name and name.casefold() in evidence.casefold() and has_source_quote(job_description, evidence):
+                required_skills.append({
+                    "name": name,
+                    "priority": item.get("priority") if item.get("priority") in {"high", "medium", "low"} else "medium",
+                    "job_evidence": evidence,
+                })
+
+        matches = {}
+        for item in data.get("resume_matches", [])[:20]:
+            if isinstance(item, dict):
+                name = str(item.get("skill", "")).strip().casefold()
+                evidence = str(item.get("evidence", "")).strip()[:300]
+                if name and name in evidence.casefold() and has_source_quote(resume_text, evidence):
+                    matches[name] = evidence
+        matched_skills = [
+            {**skill, "resume_evidence": matches[skill["name"].casefold()]}
+            for skill in required_skills if skill["name"].casefold() in matches
+        ]
+        matched_names = {item["name"].casefold() for item in matched_skills}
+        missing_skills = [skill for skill in required_skills if skill["name"].casefold() not in matched_names]
+        skill_score = round(100 * len(matched_skills) / len(required_skills)) if required_skills else None
+
+        lower_resume = resume_text.casefold()
+        sections = {
+            "Contact details": bool(re.search(r"[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}", resume_text)),
+            "Experience": bool(re.search(r"\b(experience|employment|internship|work history)\b", lower_resume)),
+            "Projects": bool(re.search(r"\bprojects?\b", lower_resume)),
+            "Education": bool(re.search(r"\b(education|academic|university|college)\b", lower_resume)),
+            "Skills": bool(re.search(r"\b(skills|technologies|technical proficiencies)\b", lower_resume)),
+        }
+        section_score = round(100 * sum(sections.values()) / len(sections))
+        quantified_lines = sum(1 for line in resume_text.splitlines() if re.search(r"\b\d+(?:\.\d+)?%?|[$₹]\s*\d+", line))
+        impact_score = min(100, quantified_lines * 25)
+        if skill_score is None:
+            ats_score = round(section_score * 0.75 + impact_score * 0.25)
+            score_basis = (
+                "No job skills could be verified from the supplied description. Check that it includes role requirements."
+                if job_description.strip()
+                else "Resume structure estimate only. Add a job description for a role-specific skills match."
+            )
+        else:
+            ats_score = round(skill_score * 0.65 + section_score * 0.2 + impact_score * 0.15)
+            score_basis = "Estimate based on evidenced job-skill matches, resume sections, and quantified results. ATS scoring varies by employer and system."
+
+        strengths = []
+        for item in data.get("strengths", [])[:5]:
+            if isinstance(item, dict):
+                title = str(item.get("title", "")).strip()[:120]
+                evidence = str(item.get("evidence", "")).strip()[:300]
+                if title and has_source_quote(resume_text, evidence):
+                    strengths.append({"title": title, "evidence": evidence})
+
+        improvements = []
+        for item in data.get("improvements", [])[:6]:
+            if isinstance(item, dict):
+                title = str(item.get("title", "")).strip()[:160]
+                action = str(item.get("action", "")).strip()[:500]
+                if title and action:
+                    improvements.append({"title": title, "action": action, "section": str(item.get("section", ""))[:80]})
+        improvements.extend({
+            "title": f"Build evidence for {skill['name']}",
+            "action": "Practise this skill first. Add a truthful project or work example only after you have used it.",
+            "section": "Skills or Projects",
+        } for skill in missing_skills)
 
         return {
             "success": True,
             "resume_text": resume_text,
-            "ats_score": score,
-            "skills": detected_skills,
+            "target_role": str(data.get("role") or target_role or "General review")[:160],
+            "job_description_provided": bool(job_description.strip()),
+            "ats_score": max(0, min(100, ats_score)),
+            "score_basis": score_basis,
+            "score_breakdown": {
+                "job_skill_match": skill_score,
+                "resume_sections": section_score,
+                "measurable_impact": impact_score,
+                "matched_skill_count": len(matched_skills),
+                "required_skill_count": len(required_skills),
+            },
+            "skills": matched_skills,
             "missing_skills": missing_skills,
-            "questions": questions[:10]
+            "strengths": strengths,
+            "improvements": improvements[:8],
+            "sections": sections,
+            "questions": questions[:10],
         }
     except HTTPException:
         raise
     except Exception as exc:
         import traceback
         traceback.print_exc()
-        raise HTTPException(
-            status_code=502,
-            detail=f"Could not process resume: {str(exc)[:300]}"
-        )
+        raise HTTPException(status_code=502, detail=f"Could not process resume: {str(exc)[:300]}")
     finally:
         if temp_path and os.path.exists(temp_path):
             os.remove(temp_path)
