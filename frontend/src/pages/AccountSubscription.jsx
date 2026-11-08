@@ -56,14 +56,15 @@ export default function AccountSubscription() {
           <div><dt>Category</dt><dd>{current?.category || "No paid category selected"}</dd></div>
           <div><dt>Status</dt><dd><span className={`subscription-status ${current?.status === "active" ? "is-active" : ""}`}>{current?.status || "free"}</span></dd></div>
           {current && <>
-            <div><dt>Payment</dt><dd>{current.payment_status === "demo_paid" ? "Demo payment recorded · no charge" : current.payment_status}</dd></div>
-            <div><dt>Method</dt><dd>{current.payment_method === "demo_upi" ? "UPI demo" : "Debit card demo"}</dd></div>
-            <div><dt>Demo total</dt><dd>{money(current.amount)}</dd></div>
-            <div><dt>Reference</dt><dd>{current.payment_reference}</dd></div>
+            <div><dt>Payment</dt><dd>{current.payment_method === "upi_manual" ? "UPI transfer submitted · awaiting verification" : "Demo payment recorded · no charge"}</dd></div>
+            <div><dt>Method</dt><dd>{current.payment_method === "upi_manual" ? "UPI transfer" : current.payment_method === "demo_upi" ? "UPI demo" : "Debit card demo"}</dd></div>
+            <div><dt>{current.payment_method === "upi_manual" ? "Amount Submitted" : "Demo Total"}</dt><dd>{money(current.amount)}</dd></div>
+            {current.transaction_id && <div><dt>UPI Transaction ID / UTR</dt><dd>{current.transaction_id}</dd></div>}
+            <div><dt>Request Reference</dt><dd>{current.payment_reference}</dd></div>
             <div><dt>Access period</dt><dd>{current.duration}</dd></div>
           </>}
         </dl>
-        {current?.status === "pending" && <p className="subscription-pending-notice">Your simulated payment has been recorded. The plan will be active after an administrator reviews and approves it.</p>}
+        {current?.status === "pending" && <p className="subscription-pending-notice">{current.payment_method === "upi_manual" ? "Your UPI details are submitted. The plan will be active after an administrator verifies the payment and approves the request." : "Your simulated payment has been recorded. The plan will be active after an administrator reviews and approves it."}</p>}
         {current?.status === "rejected" && <p className="subscription-pending-notice">The administrator did not approve this request. You can choose a plan and submit a new demo request.</p>}
         {current?.status === "revoked" && <p className="subscription-pending-notice">This subscription is no longer active. Contact the administrator if you think this is a mistake.</p>}
         {statusError && <p className="subscription-error" role="status">{statusError}</p>}

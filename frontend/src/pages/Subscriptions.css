@@ -72,6 +72,11 @@
 .payment-method small { color: #666 !important; font-size: 12px; line-height: 1.4; }
 .checkout-form > .subscription-primary { width: 100%; }
 .checkout-disclaimer { margin: 12px 0 0; color: #6c6c6c !important; font-size: 12px; line-height: 1.5; text-align: center; }
+.upi-payment-qr { display: block; width: min(100%, 260px); aspect-ratio: 1; margin: 18px auto; border: 1px solid #e2e2e2; border-radius: 12px; background: #fff; }
+.upi-id-line { text-align: center; color: #555 !important; }
+.upi-open-link { width: 100%; margin: 2px 0 18px; box-sizing: border-box; }
+.upi-transaction-field { display: grid; gap: 8px; margin: 8px 0 18px; color: #444 !important; font-size: 14px; font-weight: 650; }
+.upi-transaction-field input { width: 100%; min-height: 46px; box-sizing: border-box; padding: 11px 13px; border: 1px solid #d4d4d4; border-radius: 8px; background: #fff; color: #171717; font: inherit; }
 .subscription-error { padding: 12px 14px; border: 1px solid #d88484; border-radius: 9px; background: #fff6f6; color: #8d2222 !important; }
 .account-subscription-page > h1,.admin-page > h1 { margin: 0; }
 .account-subscription-card { margin-top: 26px; padding: 28px; }
