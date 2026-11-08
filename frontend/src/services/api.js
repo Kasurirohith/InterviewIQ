@@ -1,9 +1,11 @@
 const API_URL = import.meta.env.VITE_API_URL || "https://interviewiq-api-3ww1.onrender.com";
 
 /* Resume Upload */
-export const uploadResume = async (file) => {
+export const uploadResume = async (file, targetRole = "", jobDescription = "") => {
   const formData = new FormData();
   formData.append("file", file);
+  formData.append("target_role", targetRole);
+  formData.append("job_description", jobDescription);
 
   const response = await fetch(
     `${API_URL}/upload-resume`,
