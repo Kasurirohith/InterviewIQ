@@ -19,7 +19,7 @@ function Navbar() {
   };
   const styles = `
     .site-navbar { width:100%; min-height:68px; padding:12px 28px; display:flex; align-items:center; justify-content:space-between; gap:24px; background:#fff; border-bottom:1px solid #e5e5e5; position:sticky; top:0; z-index:10; }
-    .navbar-brand { color:#171717; text-decoration:none; font-size:19px; font-weight:700; white-space:nowrap; margin-right:auto; }
+    .navbar-brand { display:flex; align-items:center; gap:10px; color:#171717; text-decoration:none; font-size:19px; font-weight:700; white-space:nowrap; margin-right:auto; }\r\n    .navbar-brand-mark { width:27px; height:27px; flex:none; color:#171717; }
     .site-navbar .navbar-brand,.site-navbar .navbar-links a,.site-navbar .navbar-login,.site-navbar .navbar-signup { text-transform:uppercase; }
     .navbar-links { display:flex; align-items:center; justify-content:center; gap:24px; border:0 !important; box-shadow:none !important; }
     .navbar-links a,.navbar-login { color:#333; text-decoration:none; font-size:16px; font-weight:500; border:0 !important; box-shadow:none !important; }
@@ -46,7 +46,7 @@ function Navbar() {
     @media(max-width:500px) { .navbar-links { gap:10px; } .navbar-links a { font-size:12px; } }
   `;
   return <><style>{styles}</style><header className="site-navbar">
-    <Link to="/" className="navbar-brand">InterviewIQ</Link>
+    <Link to="/" className="navbar-brand"><svg className="navbar-brand-mark" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M3 11.2 16 5l13 6.2L16 17.4 3 11.2Z" fill="currentColor"/><path d="M8 14.1v6.1c4.7 4 11.3 4 16 0v-6.1l-8 3.8-8-3.8Z" fill="currentColor"/><path d="M29 11.5v8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/><circle cx="29" cy="21.5" r="1.7" fill="currentColor"/></svg><span>InterviewIQ</span></Link>
     <nav className="navbar-links" aria-label="Main navigation"><Link to="/">Home</Link><Link to="/product-companies">Product Companies</Link><Link to="/service-companies">Service Companies</Link><Link to="/coding">Coding Practice</Link><Link to="/subscriptions">Plans</Link></nav>
     <div className="navbar-account">{isLoggedIn ? <details className="account-menu"><summary aria-label="Open account details"><span className="account-avatar" aria-hidden="true">{initial}</span></summary><section className="account-popover" aria-label="Account details"><h2>Account</h2><div className="account-detail"><span className="account-detail-label">Name</span><span className="account-detail-value">{displayName}</span></div><div className="account-detail"><span className="account-detail-label">Email</span><span className="account-detail-value">{email || "Not available"}</span></div><div className="account-detail"><span className="account-detail-label">Subscription</span><span className="account-detail-value">{subscription?.name || "Free plan"}</span></div>{subscription?.category && <div className="account-detail"><span className="account-detail-label">Category</span><span className="account-detail-value">{subscription.category}</span></div>}<Link className="account-manage" to="/progress">View progress dashboard</Link><Link className="account-manage" to="/account/subscription">View subscription details</Link><button type="button" className="navbar-button account-logout" onClick={handleLogout}>Log out</button></section></details> : <><Link className="navbar-login" to="/login">Login</Link><Link className="navbar-signup" to="/signup">Sign Up</Link></>}</div>
   </header></>;
