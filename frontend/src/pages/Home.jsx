@@ -1,40 +1,56 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { uploadResume } from "../services/api";
+import { analyzeResumeText } from "../services/resumeAnalysis";
 import "./home.css";
 
 function Home() {
   const navigate = useNavigate();
   const [resumeName, setResumeName] = useState(localStorage.getItem("resumeName") || "");
   const [atsScore, setAtsScore] = useState(Number(localStorage.getItem("atsScore")) || 0);
+  const [targetRole, setTargetRole] = useState(localStorage.getItem("resumeTargetRole") || "");
+  const [jobDescription, setJobDescription] = useState("");
+  const [analysis, setAnalysis] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("resumeAnalysis") || "null"); }
+    catch { return null; }
+  });
+  const [uploadError, setUploadError] = useState("");
   const [uploading, setUploading] = useState(false);
 
   const handleResumeUpload = async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    const allowedExtensions = /\.(pdf|doc|docx)$/i;
+    const allowedExtensions = /\.pdf$/i;
     if (!allowedExtensions.test(file.name)) {
-      alert("Please upload a PDF or Word resume.");
+      setUploadError("Please upload a text-based PDF resume.");
       event.target.value = "";
       return;
     }
     setUploading(true);
+    setUploadError("");
     try {
       const result = await uploadResume(file);
+      if (!result.resume_text?.trim()) {
+        throw new Error("The resume could not be read. Please upload a text-based PDF.");
+      }
+      const review = {
+        ...analyzeResumeText(result.resume_text, targetRole, jobDescription),
+        questions: Array.isArray(result.questions) ? result.questions : [],
+      };
       localStorage.setItem("resumeName", file.name);
       setResumeName(file.name);
-      if (typeof result.ats_score === "number") {
-        localStorage.setItem("atsScore", String(result.ats_score));
-        setAtsScore(result.ats_score);
-      }
+      localStorage.setItem("resumeTargetRole", targetRole);
+      localStorage.setItem("atsScore", String(review.ats_score));
+      setAtsScore(review.ats_score);
+      const savedAnalysis = review;
+      localStorage.setItem("resumeAnalysis", JSON.stringify(savedAnalysis));
+      setAnalysis(savedAnalysis);
       if (Array.isArray(result.questions) && result.questions.length > 0) {
-        alert("Resume uploaded successfully! " + result.questions.length + " interview questions generated.");
-      } else {
-        alert("Resume uploaded, but no interview questions were returned by the backend.");
+        localStorage.setItem("resumeQuestions", JSON.stringify(result.questions));
       }
     } catch (error) {
       console.error("Resume upload error:", error);
-      alert(error.message || "Failed to upload resume. Please try again.");
+      setUploadError(error.message || "Resume review failed. Please try again.");
     } finally {
       setUploading(false);
       event.target.value = "";
@@ -66,7 +82,7 @@ function Home() {
             <div>
               <span className="home-eyebrow">RESUME</span>
               <h2>Make Your Resume Stand Out.</h2>
-              <p>Upload your resume to get started with your resume preparation.</p>
+              <p>Get evidence-based feedback, role-specific skill gaps, and practical ways to strengthen your resume.</p>
             </div>
             <span className="home-section-index">01 / 02</span>
           </div>
@@ -79,12 +95,33 @@ function Home() {
                 </svg>
               </div>
               <h3>Resume ATS Checker</h3>
-              <p>Start with your existing resume in PDF or Word format.</p>
+              <p>Compare your resume with a target role. A job description gives the most useful skill-gap review.</p>
+              <label className="resume-input-label" htmlFor="resume-target-role">TARGET ROLE</label>
+              <input
+                id="resume-target-role"
+                className="resume-target-input"
+                type="text"
+                maxLength={160}
+                placeholder="e.g. Frontend Developer"
+                value={targetRole}
+                onChange={(event) => setTargetRole(event.target.value)}
+              />
+              <label className="resume-input-label" htmlFor="resume-job-description">JOB DESCRIPTION <span>OPTIONAL</span></label>
+              <textarea
+                id="resume-job-description"
+                className="resume-job-description"
+                rows={4}
+                maxLength={18000}
+                placeholder="Paste the job description to identify its required skills and compare them with evidence in your resume."
+                value={jobDescription}
+                onChange={(event) => setJobDescription(event.target.value)}
+              />
               <label className="resume-upload-button">
-                <input type="file" accept=".pdf,.doc,.docx" onChange={handleResumeUpload} disabled={uploading} />
-                {uploading ? "Processing resume..." : resumeName ? "Upload a new resume" : "Choose resume"}
+                <input type="file" accept=".pdf" onChange={handleResumeUpload} disabled={uploading} />
+                {uploading ? "Reviewing resume..." : resumeName ? "Upload A New Resume" : "Choose Resume"}
               </label>
-              <span className="resume-file-hint">Supported formats: PDF, DOC and DOCX</span>
+              <span className="resume-file-hint">Supported format: text-based PDF</span>
+              {uploadError && <p className="resume-upload-error" role="alert">{uploadError}</p>}
             </div>
             <div className="resume-status">
               <span className="resume-status-label">CURRENT RESUME</span>
@@ -95,12 +132,12 @@ function Home() {
                     <span title={resumeName}>{resumeName}</span>
                   </div>
                   <div className="resume-score">
-                    <span>Saved preview score</span>
+                    <span>Latest Resume Estimate</span>
                     <strong>{atsScore}%</strong>
                     <div className="resume-score-track">
                       <div className="resume-score-fill" style={{ width: atsScore + "%" }} />
                     </div>
-                    <small>Backend ATS score analysis.</small>
+                    <small>{analysis?.score_basis || "Upload again to see the detailed resume review."}</small>
                   </div>
                   <button className="resume-report-link" onClick={() => navigate("/report")}>
                     View resume report <span aria-hidden="true">→</span>
@@ -115,6 +152,44 @@ function Home() {
               )}
             </div>
           </div>
+          {analysis && <section className="resume-analysis" aria-live="polite">
+            <div className="resume-analysis-heading">
+              <div>
+                <span className="home-eyebrow">PERSONALIZED REVIEW</span>
+                <h3>RESUME ANALYSIS</h3>
+                <p>{analysis.target_role ? `Target: ${analysis.target_role}` : "Resume review"}</p>
+              </div>
+              <strong className="resume-analysis-score">{analysis.ats_score}<span>/100</span></strong>
+            </div>
+            <p className="resume-score-note">{analysis.score_basis}</p>
+            <div className="resume-breakdown-grid">
+              <div><span>JOB SKILL MATCH</span><strong>{analysis.score_breakdown?.job_skill_match == null ? (analysis.job_description_provided ? "No verified skills" : "Add job description") : `${analysis.score_breakdown.job_skill_match}%`}</strong></div>
+              <div><span>RESUME SECTIONS</span><strong>{analysis.score_breakdown?.resume_sections ?? 0}%</strong></div>
+              <div><span>MEASURABLE IMPACT</span><strong>{analysis.score_breakdown?.measurable_impact ?? 0}%</strong></div>
+            </div>
+            {analysis.score_breakdown?.job_skill_match == null && <p className="resume-analysis-note">{analysis.job_description_provided ? "No requirements could be verified from this job description, so the review does not guess missing skills. Check the description and upload again." : "No job description was provided, so missing role skills are not guessed. Add one above and upload again for a targeted comparison."}</p>}
+            <div className="resume-analysis-columns">
+              <div className="resume-analysis-block">
+                <h4>MATCHED SKILLS <span>{analysis.skills?.length || 0}</span></h4>
+                {analysis.skills?.length ? <ul className="resume-skill-list">{analysis.skills.map((skill) => <li key={skill.name}><strong>{skill.name}</strong><small>Resume text includes: “{skill.resume_evidence}”</small></li>)}</ul> : <p>{analysis.job_description_provided ? "No recognized job-skill keywords were found in the resume." : "No job-specific skill matches to show yet."}</p>}
+              </div>
+              <div className="resume-analysis-block">
+                <h4>MISSING JOB SKILLS <span>{analysis.missing_skills?.length || 0}</span></h4>
+                {analysis.missing_skills?.length ? <ul className="resume-skill-list">{analysis.missing_skills.map((skill) => <li key={skill.name}><strong>{skill.name}</strong><small>Job description: “{skill.job_evidence}”</small></li>)}</ul> : <p>{analysis.score_breakdown?.job_skill_match == null ? (analysis.job_description_provided ? "No recognized skills were found in the job description." : "Paste a target job description to reveal role-specific gaps.") : "All recognized required skills appear in the resume."}</p>}
+              </div>
+            </div>
+            <div className="resume-analysis-columns">
+              <div className="resume-analysis-block">
+                <h4>RESUME STRENGTHS</h4>
+                {analysis.strengths?.length ? <ul className="resume-advice-list">{analysis.strengths.map((item, index) => <li key={`${item.title}-${index}`}><strong>{item.title}</strong><small>{item.evidence}</small></li>)}</ul> : <p>Add clear project and experience details for stronger evidence.</p>}
+              </div>
+              <div className="resume-analysis-block">
+                <h4>RECOMMENDED NEXT STEPS</h4>
+                {analysis.improvements?.length ? <ol className="resume-advice-list">{analysis.improvements.map((item, index) => <li key={`${item.title}-${index}`}><strong>{item.title}</strong><small>{item.action}{item.section ? ` (${item.section})` : ""}</small></li>)}</ol> : <p>Keep tailoring your resume to each role.</p>}
+              </div>
+            </div>
+            <p className="resume-analysis-disclaimer">This estimate uses exact keywords and common skill aliases recognized from the job description. It may not identify every skill phrasing, and each employer’s ATS works differently. Add only skills and results you can support honestly.</p>
+          </section>}
         </section>
 
         <section className="home-section" id="companies">
