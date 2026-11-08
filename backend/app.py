@@ -3,13 +3,10 @@ import json
 import re
 import secrets
 import hmac
-import io
-from urllib.parse import urlencode
 from datetime import datetime, timezone
 from google import genai
 from dotenv import load_dotenv
 from fastapi import HTTPException, Header
-from fastapi.responses import StreamingResponse
 import tempfile
 import pdfplumber
 from fastapi import FastAPI, UploadFile, File
@@ -17,7 +14,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 # Import database handles
-from database import conn, cursor, DATABASE_URL
+from database import conn, cursor
 
 app = FastAPI(
     title="AI Interview Coach API",
@@ -123,13 +120,6 @@ class DemoSubscriptionRequest(BaseModel):
     payment_method: str
 
 
-class UpiSubscriptionRequest(BaseModel):
-    name: str = Field(min_length=1, max_length=120)
-    email: str = Field(min_length=3, max_length=254)
-    plan_code: str
-    transaction_id: str = Field(min_length=6, max_length=80)
-
-
 SUBSCRIPTION_PLANS = {
     "starter": {
         "name": "InterviewIQ Starter",
@@ -157,48 +147,6 @@ SUBSCRIPTION_PLANS = {
             "Coding practice and technical preparation",
             "Expanded company-specific preparation paths",
             "Interview feedback and progress tracking",
-        ],
-    },
-    "starter_annual": {
-        "name": "InterviewIQ Starter Annual",
-        "category": "Interview and resume preparation",
-        "list_price": 699.0,
-        "discount_percent": 0,
-        "amount": 699.0,
-        "duration": "1 year",
-        "features": [
-            "Company-specific interview preparation",
-            "Resume review and improvement guidance",
-            "Interview practice with AI feedback",
-            "Progress tracking for your preparation",
-        ],
-    },
-    "plus_annual": {
-        "name": "InterviewIQ Plus Annual",
-        "category": "Interview, resume, and coding preparation",
-        "list_price": 999.0,
-        "discount_percent": 0,
-        "amount": 999.0,
-        "duration": "1 year",
-        "features": [
-            "Everything in Starter",
-            "Coding practice and technical preparation",
-            "Expanded company-specific preparation paths",
-            "Interview feedback and progress tracking",
-        ],
-    },
-    "plus_test": {
-        "name": "InterviewIQ Plus Test Plan",
-        "category": "Premium test access",
-        "list_price": 1.0,
-        "discount_percent": 0,
-        "amount": 1.0,
-        "duration": "30 days",
-        "features": [
-            "Company-specific interview preparation",
-            "Resume review and improvement guidance",
-            "AI interview practice and feedback",
-            "Coding practice and progress tracking",
         ],
     },
 }
@@ -710,42 +658,7 @@ def require_admin(admin_password: str | None) -> None:
 
 @app.get("/subscriptions/plans")
 def subscription_plans():
-    return {
-        "plans": SUBSCRIPTION_PLANS,
-        "annual_upi_enabled": bool(DATABASE_URL),
-        "test_plan_enabled": os.getenv("UPI_TEST_PLAN_ENABLED", "false").lower() == "true",
-    }
-
-
-@app.get("/subscriptions/upi-qr/{plan_code}")
-def subscription_upi_qr(plan_code: str):
-    """Build a plan-specific UPI QR, but only when payment storage is durable."""
-    plan = SUBSCRIPTION_PLANS.get(plan_code)
-    if not plan or plan_code not in {"starter_annual", "plus_annual", "plus_test"}:
-        raise HTTPException(status_code=404, detail="Annual UPI plan not found.")
-    if plan_code == "plus_test" and os.getenv("UPI_TEST_PLAN_ENABLED", "false").lower() != "true":
-        raise HTTPException(status_code=404, detail="The test plan is not enabled.")
-    if not DATABASE_URL:
-        raise HTTPException(status_code=503, detail="Annual UPI payments are not enabled until persistent storage is configured.")
-
-    vpa = os.getenv("UPI_ID", "hittu05@ybl").strip()
-    payee = os.getenv("UPI_PAYEE_NAME", "Hittu2").strip()
-    payment_uri = "upi://pay?" + urlencode({
-        "pa": vpa,
-        "pn": payee,
-        "am": f"{plan['amount']:.2f}",
-        "cu": "INR",
-        "tn": f"InterviewIQ {plan['name']}",
-    })
-    try:
-        import qrcode
-        qr_image = qrcode.make(payment_uri)
-        image = io.BytesIO()
-        qr_image.save(image, format="PNG")
-        image.seek(0)
-    except ImportError as exc:
-        raise HTTPException(status_code=503, detail="UPI QR generation is not available.") from exc
-    return StreamingResponse(image, media_type="image/png", headers={"Cache-Control": "public, max-age=3600"})
+    return {"plans": SUBSCRIPTION_PLANS}
 
 
 @app.post("/subscriptions/demo")
@@ -795,65 +708,12 @@ def create_demo_subscription(request: DemoSubscriptionRequest):
     }
 
 
-@app.post("/subscriptions/upi")
-def create_upi_subscription(request: UpiSubscriptionRequest):
-    """Store manual UPI payment details for verification by the administrator."""
-    plan = SUBSCRIPTION_PLANS.get(request.plan_code)
-    if not plan or request.plan_code not in {"starter_annual", "plus_annual", "plus_test"}:
-        raise HTTPException(status_code=400, detail="Choose a valid annual plan.")
-    if request.plan_code == "plus_test" and os.getenv("UPI_TEST_PLAN_ENABLED", "false").lower() != "true":
-        raise HTTPException(status_code=400, detail="The test plan is not enabled.")
-    if not DATABASE_URL:
-        raise HTTPException(status_code=503, detail="Annual UPI payments are not enabled until persistent storage is configured.")
-
-    email = request.email.strip().lower()
-    if not re.fullmatch(r"[^\s@]+@[^\s@]+\.[^\s@]+", email):
-        raise HTTPException(status_code=400, detail="Enter a valid email address.")
-    transaction_id = request.transaction_id.strip()
-    if not re.fullmatch(r"[A-Za-z0-9-]{6,80}", transaction_id):
-        raise HTTPException(status_code=400, detail="Enter the UPI transaction reference shown by your payment app.")
-    cursor.execute("SELECT id FROM subscriptions WHERE lower(transaction_id)=lower(?)", (transaction_id,))
-    if cursor.fetchone():
-        raise HTTPException(status_code=409, detail="That UPI transaction reference has already been submitted.")
-
-    reference = f"UPI-{secrets.token_hex(8).upper()}"
-    cursor.execute(
-        """INSERT INTO subscriptions
-           (name, email, plan_code, plan_name, category, list_price,
-            discount_percent, demo_amount, payment_method, payment_reference,
-            transaction_id, payment_status, status)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'upi_manual', ?, ?, 'awaiting_verification', 'pending')""",
-        (
-            request.name.strip(), email, request.plan_code, plan["name"],
-            plan["category"], plan["list_price"], plan["discount_percent"],
-            plan["amount"], reference, transaction_id,
-        ),
-    )
-    conn.commit()
-    return {
-        "success": True,
-        "message": "UPI transfer details submitted. Access remains pending until an admin verifies the payment.",
-        "subscription": {
-            "name": plan["name"],
-            "category": plan["category"],
-            "amount": plan["amount"],
-            "duration": plan["duration"],
-            "status": "pending",
-            "payment_status": "awaiting_verification",
-            "payment_method": "upi_manual",
-            "payment_reference": reference,
-            "transaction_id": transaction_id,
-        },
-    }
-
-
 @app.get("/subscriptions/status/{payment_reference}")
 def subscription_status(payment_reference: str):
     """Return the latest admin-reviewed state for one unguessable demo reference."""
     cursor.execute(
         """SELECT plan_name, category, demo_amount, payment_method,
-                  payment_reference, payment_status, status, created_at, updated_at,
-                  plan_code, transaction_id
+                  payment_reference, payment_status, status, created_at, updated_at
            FROM subscriptions WHERE payment_reference=?""",
         (payment_reference,),
     )
@@ -868,10 +728,9 @@ def subscription_status(payment_reference: str):
             "name": record["plan_name"],
             "category": record["category"],
             "amount": record["demo_amount"],
-            "duration": SUBSCRIPTION_PLANS.get(record["plan_code"], {}).get("duration", "30 days"),
+            "duration": "30 days",
             "payment_method": record["payment_method"],
             "payment_reference": record["payment_reference"],
-            "transaction_id": record["transaction_id"],
             "payment_status": record["payment_status"],
             "status": record["status"],
             "created_at": record["created_at"],
@@ -886,7 +745,6 @@ def admin_subscriptions(x_admin_password: str | None = Header(default=None)):
     cursor.execute(
         """SELECT id, name, email, plan_code, plan_name, category, list_price,
                   discount_percent, demo_amount, payment_method, payment_reference,
-                  transaction_id,
                   payment_status, status, created_at
            FROM subscriptions ORDER BY id DESC"""
     )
@@ -1015,4 +873,35 @@ def admin_revoke_subscription(
         raise HTTPException(status_code=409, detail="Only active subscriptions can be revoked.")
     conn.commit()
     return {"success": True, "status": "revoked"}
+
+
+@app.get("/subscriptions/status/{payment_reference}")
+def subscription_status(payment_reference: str):
+    """Return the latest admin-reviewed state for one unguessable demo reference."""
+    cursor.execute(
+        """SELECT plan_name, category, demo_amount, payment_method,
+                  payment_reference, payment_status, status, created_at, updated_at
+           FROM subscriptions WHERE payment_reference=?""",
+        (payment_reference,),
+    )
+    row = cursor.fetchone()
+    if row is None:
+        raise HTTPException(status_code=404, detail="Subscription record not found.")
+
+    columns = [item[0] for item in cursor.description]
+    record = dict(zip(columns, row))
+    return {
+        "subscription": {
+            "name": record["plan_name"],
+            "category": record["category"],
+            "amount": record["demo_amount"],
+            "duration": "30 days",
+            "payment_method": record["payment_method"],
+            "payment_reference": record["payment_reference"],
+            "payment_status": record["payment_status"],
+            "status": record["status"],
+            "created_at": record["created_at"],
+            "updated_at": record["updated_at"],
+        }
+    }
 
