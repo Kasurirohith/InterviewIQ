@@ -30,6 +30,52 @@ export const subscriptionPlans = {
       "Interview feedback and progress tracking",
     ],
   },
+  starter_annual: {
+    name: "InterviewIQ Starter Annual",
+    category: "Interview and resume preparation",
+    listPrice: 699,
+    discountPercent: 0,
+    amount: 699,
+    duration: "1 year",
+    paymentType: "upi_manual",
+    features: [
+      "Company-specific interview preparation",
+      "Resume review and improvement guidance",
+      "Interview practice with AI feedback",
+      "Progress tracking for your preparation",
+    ],
+  },
+  plus_annual: {
+    name: "InterviewIQ Plus Annual",
+    category: "Interview, resume, and coding preparation",
+    listPrice: 999,
+    discountPercent: 0,
+    amount: 999,
+    duration: "1 year",
+    paymentType: "upi_manual",
+    features: [
+      "Everything in Starter",
+      "Coding practice and technical preparation",
+      "Expanded company-specific preparation paths",
+      "Interview feedback and progress tracking",
+    ],
+  },
+  plus_test: {
+    name: "InterviewIQ Plus Test Plan",
+    category: "Premium test access",
+    listPrice: 1,
+    discountPercent: 0,
+    amount: 1,
+    duration: "30 days",
+    paymentType: "upi_manual",
+    testOnly: true,
+    features: [
+      "Company-specific interview preparation",
+      "Resume review and improvement guidance",
+      "AI interview practice and feedback",
+      "Coding practice and progress tracking",
+    ],
+  },
 };
 
 async function readResponse(response) {
@@ -45,6 +91,19 @@ export async function submitDemoPayment(payload) {
     body: JSON.stringify(payload),
   });
   return readResponse(response);
+}
+
+export async function submitManualUpiPayment(payload) {
+  const response = await fetch(`${API_URL}/subscriptions/upi`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  return readResponse(response);
+}
+
+export function getUpiQrUrl(planCode) {
+  return `${API_URL}/subscriptions/upi-qr/${encodeURIComponent(planCode)}`;
 }
 
 export async function loadSubscriptionStatus(paymentReference) {
