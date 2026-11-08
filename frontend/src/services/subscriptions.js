@@ -84,6 +84,15 @@ async function readResponse(response) {
   return data;
 }
 
+export async function loadSubscriptionAvailability() {
+  const response = await fetch(`${API_URL}/subscriptions/plans`);
+  const data = await readResponse(response);
+  return {
+    annualUpiEnabled: data.annual_upi_enabled === true,
+    testPlanEnabled: data.test_plan_enabled === true,
+  };
+}
+
 export async function submitDemoPayment(payload) {
   const response = await fetch(`${API_URL}/subscriptions/demo`, {
     method: "POST",

@@ -1,5 +1,6 @@
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { subscriptionPlans } from "../services/subscriptions";
+import { loadSubscriptionAvailability, subscriptionPlans } from "../services/subscriptions";
 import "./Subscriptions.css";
 
 const money = (value) => `₹${Number(value).toFixed(Number(value) % 1 ? 2 : 0)}`;
@@ -7,8 +8,20 @@ const money = (value) => `₹${Number(value).toFixed(Number(value) % 1 ? 2 : 0)}
 export default function Subscriptions() {
   const navigate = useNavigate();
   const loggedIn = Boolean(localStorage.getItem("email"));
-  const upiEnabled = import.meta.env.VITE_UPI_PAYMENTS_ENABLED === "true";
-  const testPlanEnabled = import.meta.env.VITE_UPI_TEST_PLAN_ENABLED === "true";
+  const [availability, setAvailability] = useState({ annualUpiEnabled: false, testPlanEnabled: false });
+  const [availabilityLoaded, setAvailabilityLoaded] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    loadSubscriptionAvailability()
+      .then((result) => { if (active) setAvailability(result); })
+      .catch(() => { if (active) setAvailability({ annualUpiEnabled: false, testPlanEnabled: false }); })
+      .finally(() => { if (active) setAvailabilityLoaded(true); });
+    return () => { active = false; };
+  }, []);
+
+  const upiEnabled = availability.annualUpiEnabled;
+  const testPlanEnabled = availability.testPlanEnabled;
 
   return (
     <main className="subscription-page">
@@ -47,10 +60,10 @@ export default function Subscriptions() {
             <button
               type="button"
               className="subscription-primary"
-              disabled={(plan.paymentType === "upi_manual" && !upiEnabled) || (plan.testOnly && !testPlanEnabled)}
+              disabled={!availabilityLoaded || (plan.paymentType === "upi_manual" && !upiEnabled) || (plan.testOnly && !testPlanEnabled)}
               onClick={() => navigate(loggedIn ? `/subscription/checkout/${code}` : "/login")}
             >
-              {(plan.paymentType === "upi_manual" && !upiEnabled) || (plan.testOnly && !testPlanEnabled) ? "Payment Setup Needed" : loggedIn ? (plan.paymentType === "upi_manual" ? (plan.testOnly ? "Test Premium For ₹1" : "Continue with UPI") : "Choose this plan") : "Log in to choose"}
+              {!availabilityLoaded ? "Checking Payment Setup" : (plan.paymentType === "upi_manual" && !upiEnabled) || (plan.testOnly && !testPlanEnabled) ? "Payment Setup Needed" : loggedIn ? (plan.paymentType === "upi_manual" ? (plan.testOnly ? "Test Premium For ₹1" : "Continue with UPI") : "Choose this plan") : "Log in to choose"}
             </button>
           </article>
         ))}

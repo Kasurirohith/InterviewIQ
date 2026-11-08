@@ -3,18 +3,21 @@ import json
 import re
 import secrets
 import hmac
+import io
+from urllib.parse import urlencode
 from datetime import datetime, timezone
 from google import genai
 from dotenv import load_dotenv
 from fastapi import HTTPException, Header
+from fastapi.responses import StreamingResponse
 import tempfile
 import pdfplumber
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 # Import database handles
-from database import conn, cursor
+from database import conn, cursor, DATABASE_URL
 
 app = FastAPI(
     title="AI Interview Coach API",
@@ -120,6 +123,13 @@ class DemoSubscriptionRequest(BaseModel):
     payment_method: str
 
 
+class UpiSubscriptionRequest(BaseModel):
+    name: str = Field(min_length=1, max_length=120)
+    email: str = Field(min_length=3, max_length=254)
+    plan_code: str
+    transaction_id: str = Field(min_length=6, max_length=80)
+
+
 SUBSCRIPTION_PLANS = {
     "starter": {
         "name": "InterviewIQ Starter",
@@ -147,6 +157,48 @@ SUBSCRIPTION_PLANS = {
             "Coding practice and technical preparation",
             "Expanded company-specific preparation paths",
             "Interview feedback and progress tracking",
+        ],
+    },
+    "starter_annual": {
+        "name": "InterviewIQ Starter Annual",
+        "category": "Interview and resume preparation",
+        "list_price": 699.0,
+        "discount_percent": 0,
+        "amount": 699.0,
+        "duration": "1 year",
+        "features": [
+            "Company-specific interview preparation",
+            "Resume review and improvement guidance",
+            "Interview practice with AI feedback",
+            "Progress tracking for your preparation",
+        ],
+    },
+    "plus_annual": {
+        "name": "InterviewIQ Plus Annual",
+        "category": "Interview, resume, and coding preparation",
+        "list_price": 999.0,
+        "discount_percent": 0,
+        "amount": 999.0,
+        "duration": "1 year",
+        "features": [
+            "Everything in Starter",
+            "Coding practice and technical preparation",
+            "Expanded company-specific preparation paths",
+            "Interview feedback and progress tracking",
+        ],
+    },
+    "plus_test": {
+        "name": "InterviewIQ Plus Test Plan",
+        "category": "Premium test access",
+        "list_price": 1.0,
+        "discount_percent": 0,
+        "amount": 1.0,
+        "duration": "30 days",
+        "features": [
+            "Company-specific interview preparation",
+            "Resume review and improvement guidance",
+            "AI interview practice and feedback",
+            "Coding practice and progress tracking",
         ],
     },
 }
@@ -227,89 +279,173 @@ def login(user: User):
 
 
 @app.post("/upload-resume")
-async def upload_resume(file: UploadFile = File(...)):
+async def upload_resume(
+    file: UploadFile = File(...),
+    target_role: str = Form(default=""),
+    job_description: str = Form(default=""),
+):
     temp_path = None
     try:
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_file:
-            temp_file.write(await file.read())
-            temp_path = temp_file.name
+        filename = (file.filename or "").lower()
+        if not filename.endswith((".pdf", ".docx")):
+            raise HTTPException(status_code=400, detail="Please upload a text-based PDF or DOCX resume.")
 
-        resume_text = ""
-        with pdfplumber.open(temp_path) as pdf:
-            for page in pdf.pages:
-                text = page.extract_text()
-                if text:
-                    resume_text += text + "\n"
+        content = await file.read()
+        if not content:
+            raise HTTPException(status_code=400, detail="The uploaded resume is empty.")
+        if len(content) > 8 * 1024 * 1024:
+            raise HTTPException(status_code=413, detail="Please upload a resume smaller than 8 MB.")
 
-        resume_lower = resume_text.lower()
-        skills = [
-            "python", "java", "sql", "react", "machine learning",
-            "html", "css", "javascript", "power bi", "excel"
-        ]
+        if filename.endswith(".pdf"):
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_file:
+                temp_file.write(content)
+                temp_path = temp_file.name
+            with pdfplumber.open(temp_path) as pdf:
+                resume_text = "\n".join(page.extract_text() or "" for page in pdf.pages)
+        else:
+            from docx import Document
+            document = Document(io.BytesIO(content))
+            paragraphs = [paragraph.text for paragraph in document.paragraphs]
+            table_text = [cell.text for table in document.tables for row in table.rows for cell in row.cells]
+            resume_text = "\n".join([*paragraphs, *table_text])
 
-        detected_skills = []
-        missing_skills = []
-        score = 0
-
-        for skill in skills:
-            if skill in resume_lower:
-                detected_skills.append(skill)
-                score += 10
-            else:
-                missing_skills.append(skill)
+        resume_text = resume_text.strip()
+        if not resume_text:
+            raise HTTPException(status_code=400, detail="No readable text was found. Please upload a text-based PDF or DOCX file.")
 
         if not ai_client:
-            raise HTTPException(
-                status_code=503,
-                detail="AI is not configured. Set GEMINI_API_KEY in backend/.env."
-            )
+            raise HTTPException(status_code=503, detail="AI resume review is not configured on the backend.")
 
         prompt = f"""
-You are an expert technical recruiter and interview coach.
-Analyze the following resume text and generate 10 tailored interview questions based on the candidate's skills, experience, and background.
-Return ONLY valid JSON with this exact structure:
+You are a careful resume reviewer. Compare the candidate's resume with the target role and job description.
+Do not invent skills, work, education, achievements, or results. List a missing skill only when the job description asks for it and the resume has no clear evidence. If no job description is supplied, return an empty required_skills list and do not claim to know role-specific gaps.
+
+Return ONLY valid JSON:
 {{
-  "questions": [
-    "Question 1",
-    "Question 2"
-  ]
+  "role": "target role or best-fit role inferred from the documents",
+  "required_skills": [{{"name":"skill explicitly required by the job description","priority":"high|medium|low","job_evidence":"exact short quote from the job description"}}],
+  "resume_matches": [{{"skill":"same skill name","evidence":"exact short quote from the resume that proves it"}}],
+  "strengths": [{{"title":"short strength","evidence":"exact short quote from the resume"}}],
+  "improvements": [{{"title":"specific issue","action":"truthful, actionable next step","section":"section to update"}}],
+  "questions": ["10 interview questions grounded in this resume and role"]
 }}
 
-Resume:
-{resume_text[:25000]}
+Rules: At most 15 distinct important job skills, only with verbatim job evidence. A resume match counts only when the exact skill name is explicitly written in the quoted resume evidence; do not count synonyms. At most 5 strengths, each with verbatim resume evidence. At most 6 specific improvements. Do not tell the candidate to claim a skill or metric they do not have. For missing skills, advise learning/practising first and adding genuine project evidence only after they have done the work. Questions should refer to actual resume content where possible.
+
+Target role: {target_role.strip()[:160] or "Infer from the documents"}
+Job description: {job_description.strip()[:18000] or "Not supplied"}
+Resume: {resume_text[:25000]}
 """
         response = ai_client.models.generate_content(
             model=os.getenv("GEMINI_MODEL", "gemini-2.5-flash"),
-            contents=prompt
+            contents=prompt,
         )
-        
         data = extract_json_from_response(response.text)
-        questions = data.get("questions", [])
-        questions = [
-            str(q).strip()
-            for q in questions
-            if isinstance(q, str) and q.strip()
-        ]
+        questions = [str(q).strip() for q in data.get("questions", []) if isinstance(q, str) and q.strip()]
         if not questions:
             raise ValueError("No valid questions were generated.")
+
+        def has_source_quote(source, quote):
+            return isinstance(quote, str) and len(quote.strip()) >= 4 and quote.strip().casefold() in source.casefold()
+
+        required_skills = []
+        for item in data.get("required_skills", [])[:15]:
+            if not isinstance(item, dict) or not job_description.strip():
+                continue
+            name = str(item.get("name", "")).strip()[:100]
+            evidence = str(item.get("job_evidence", "")).strip()[:300]
+            if name and name.casefold() in evidence.casefold() and has_source_quote(job_description, evidence):
+                required_skills.append({
+                    "name": name,
+                    "priority": item.get("priority") if item.get("priority") in {"high", "medium", "low"} else "medium",
+                    "job_evidence": evidence,
+                })
+
+        matches = {}
+        for item in data.get("resume_matches", [])[:20]:
+            if isinstance(item, dict):
+                name = str(item.get("skill", "")).strip().casefold()
+                evidence = str(item.get("evidence", "")).strip()[:300]
+                if name and name in evidence.casefold() and has_source_quote(resume_text, evidence):
+                    matches[name] = evidence
+        matched_skills = [
+            {**skill, "resume_evidence": matches[skill["name"].casefold()]}
+            for skill in required_skills if skill["name"].casefold() in matches
+        ]
+        matched_names = {item["name"].casefold() for item in matched_skills}
+        missing_skills = [skill for skill in required_skills if skill["name"].casefold() not in matched_names]
+        skill_score = round(100 * len(matched_skills) / len(required_skills)) if required_skills else None
+
+        lower_resume = resume_text.casefold()
+        sections = {
+            "Contact details": bool(re.search(r"[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}", resume_text)),
+            "Experience": bool(re.search(r"\b(experience|employment|internship|work history)\b", lower_resume)),
+            "Projects": bool(re.search(r"\bprojects?\b", lower_resume)),
+            "Education": bool(re.search(r"\b(education|academic|university|college)\b", lower_resume)),
+            "Skills": bool(re.search(r"\b(skills|technologies|technical proficiencies)\b", lower_resume)),
+        }
+        section_score = round(100 * sum(sections.values()) / len(sections))
+        quantified_lines = sum(1 for line in resume_text.splitlines() if re.search(r"\b\d+(?:\.\d+)?%?|[$₹]\s*\d+", line))
+        impact_score = min(100, quantified_lines * 25)
+        if skill_score is None:
+            ats_score = round(section_score * 0.75 + impact_score * 0.25)
+            score_basis = (
+                "No job skills could be verified from the supplied description. Check that it includes role requirements."
+                if job_description.strip()
+                else "Resume structure estimate only. Add a job description for a role-specific skills match."
+            )
+        else:
+            ats_score = round(skill_score * 0.65 + section_score * 0.2 + impact_score * 0.15)
+            score_basis = "Estimate based on evidenced job-skill matches, resume sections, and quantified results. ATS scoring varies by employer and system."
+
+        strengths = []
+        for item in data.get("strengths", [])[:5]:
+            if isinstance(item, dict):
+                title = str(item.get("title", "")).strip()[:120]
+                evidence = str(item.get("evidence", "")).strip()[:300]
+                if title and has_source_quote(resume_text, evidence):
+                    strengths.append({"title": title, "evidence": evidence})
+
+        improvements = []
+        for item in data.get("improvements", [])[:6]:
+            if isinstance(item, dict):
+                title = str(item.get("title", "")).strip()[:160]
+                action = str(item.get("action", "")).strip()[:500]
+                if title and action:
+                    improvements.append({"title": title, "action": action, "section": str(item.get("section", ""))[:80]})
+        improvements.extend({
+            "title": f"Build evidence for {skill['name']}",
+            "action": "Practise this skill first. Add a truthful project or work example only after you have used it.",
+            "section": "Skills or Projects",
+        } for skill in missing_skills)
 
         return {
             "success": True,
             "resume_text": resume_text,
-            "ats_score": score,
-            "skills": detected_skills,
+            "target_role": str(data.get("role") or target_role or "General review")[:160],
+            "job_description_provided": bool(job_description.strip()),
+            "ats_score": max(0, min(100, ats_score)),
+            "score_basis": score_basis,
+            "score_breakdown": {
+                "job_skill_match": skill_score,
+                "resume_sections": section_score,
+                "measurable_impact": impact_score,
+                "matched_skill_count": len(matched_skills),
+                "required_skill_count": len(required_skills),
+            },
+            "skills": matched_skills,
             "missing_skills": missing_skills,
-            "questions": questions[:10]
+            "strengths": strengths,
+            "improvements": improvements[:8],
+            "sections": sections,
+            "questions": questions[:10],
         }
     except HTTPException:
         raise
     except Exception as exc:
         import traceback
         traceback.print_exc()
-        raise HTTPException(
-            status_code=502,
-            detail=f"Could not process resume: {str(exc)[:300]}"
-        )
+        raise HTTPException(status_code=502, detail=f"Could not process resume: {str(exc)[:300]}")
     finally:
         if temp_path and os.path.exists(temp_path):
             os.remove(temp_path)
@@ -658,7 +794,42 @@ def require_admin(admin_password: str | None) -> None:
 
 @app.get("/subscriptions/plans")
 def subscription_plans():
-    return {"plans": SUBSCRIPTION_PLANS}
+    return {
+        "plans": SUBSCRIPTION_PLANS,
+        "annual_upi_enabled": bool(DATABASE_URL),
+        "test_plan_enabled": os.getenv("UPI_TEST_PLAN_ENABLED", "false").lower() == "true",
+    }
+
+
+@app.get("/subscriptions/upi-qr/{plan_code}")
+def subscription_upi_qr(plan_code: str):
+    """Build a plan-specific UPI QR, but only when payment storage is durable."""
+    plan = SUBSCRIPTION_PLANS.get(plan_code)
+    if not plan or plan_code not in {"starter_annual", "plus_annual", "plus_test"}:
+        raise HTTPException(status_code=404, detail="Annual UPI plan not found.")
+    if plan_code == "plus_test" and os.getenv("UPI_TEST_PLAN_ENABLED", "false").lower() != "true":
+        raise HTTPException(status_code=404, detail="The test plan is not enabled.")
+    if not DATABASE_URL:
+        raise HTTPException(status_code=503, detail="Annual UPI payments are not enabled until persistent storage is configured.")
+
+    vpa = os.getenv("UPI_ID", "hittu05@ybl").strip()
+    payee = os.getenv("UPI_PAYEE_NAME", "Hittu2").strip()
+    payment_uri = "upi://pay?" + urlencode({
+        "pa": vpa,
+        "pn": payee,
+        "am": f"{plan['amount']:.2f}",
+        "cu": "INR",
+        "tn": f"InterviewIQ {plan['name']}",
+    })
+    try:
+        import qrcode
+        qr_image = qrcode.make(payment_uri)
+        image = io.BytesIO()
+        qr_image.save(image, format="PNG")
+        image.seek(0)
+    except ImportError as exc:
+        raise HTTPException(status_code=503, detail="UPI QR generation is not available.") from exc
+    return StreamingResponse(image, media_type="image/png", headers={"Cache-Control": "public, max-age=3600"})
 
 
 @app.post("/subscriptions/demo")
@@ -708,12 +879,65 @@ def create_demo_subscription(request: DemoSubscriptionRequest):
     }
 
 
+@app.post("/subscriptions/upi")
+def create_upi_subscription(request: UpiSubscriptionRequest):
+    """Store manual UPI payment details for verification by the administrator."""
+    plan = SUBSCRIPTION_PLANS.get(request.plan_code)
+    if not plan or request.plan_code not in {"starter_annual", "plus_annual", "plus_test"}:
+        raise HTTPException(status_code=400, detail="Choose a valid annual plan.")
+    if request.plan_code == "plus_test" and os.getenv("UPI_TEST_PLAN_ENABLED", "false").lower() != "true":
+        raise HTTPException(status_code=400, detail="The test plan is not enabled.")
+    if not DATABASE_URL:
+        raise HTTPException(status_code=503, detail="Annual UPI payments are not enabled until persistent storage is configured.")
+
+    email = request.email.strip().lower()
+    if not re.fullmatch(r"[^\s@]+@[^\s@]+\.[^\s@]+", email):
+        raise HTTPException(status_code=400, detail="Enter a valid email address.")
+    transaction_id = request.transaction_id.strip()
+    if not re.fullmatch(r"[A-Za-z0-9-]{6,80}", transaction_id):
+        raise HTTPException(status_code=400, detail="Enter the UPI transaction reference shown by your payment app.")
+    cursor.execute("SELECT id FROM subscriptions WHERE lower(transaction_id)=lower(?)", (transaction_id,))
+    if cursor.fetchone():
+        raise HTTPException(status_code=409, detail="That UPI transaction reference has already been submitted.")
+
+    reference = f"UPI-{secrets.token_hex(8).upper()}"
+    cursor.execute(
+        """INSERT INTO subscriptions
+           (name, email, plan_code, plan_name, category, list_price,
+            discount_percent, demo_amount, payment_method, payment_reference,
+            transaction_id, payment_status, status)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'upi_manual', ?, ?, 'awaiting_verification', 'pending')""",
+        (
+            request.name.strip(), email, request.plan_code, plan["name"],
+            plan["category"], plan["list_price"], plan["discount_percent"],
+            plan["amount"], reference, transaction_id,
+        ),
+    )
+    conn.commit()
+    return {
+        "success": True,
+        "message": "UPI transfer details submitted. Access remains pending until an admin verifies the payment.",
+        "subscription": {
+            "name": plan["name"],
+            "category": plan["category"],
+            "amount": plan["amount"],
+            "duration": plan["duration"],
+            "status": "pending",
+            "payment_status": "awaiting_verification",
+            "payment_method": "upi_manual",
+            "payment_reference": reference,
+            "transaction_id": transaction_id,
+        },
+    }
+
+
 @app.get("/subscriptions/status/{payment_reference}")
 def subscription_status(payment_reference: str):
     """Return the latest admin-reviewed state for one unguessable demo reference."""
     cursor.execute(
         """SELECT plan_name, category, demo_amount, payment_method,
-                  payment_reference, payment_status, status, created_at, updated_at
+                  payment_reference, payment_status, status, created_at, updated_at,
+                  plan_code, transaction_id
            FROM subscriptions WHERE payment_reference=?""",
         (payment_reference,),
     )
@@ -728,9 +952,10 @@ def subscription_status(payment_reference: str):
             "name": record["plan_name"],
             "category": record["category"],
             "amount": record["demo_amount"],
-            "duration": "30 days",
+            "duration": SUBSCRIPTION_PLANS.get(record["plan_code"], {}).get("duration", "30 days"),
             "payment_method": record["payment_method"],
             "payment_reference": record["payment_reference"],
+            "transaction_id": record["transaction_id"],
             "payment_status": record["payment_status"],
             "status": record["status"],
             "created_at": record["created_at"],
@@ -745,6 +970,7 @@ def admin_subscriptions(x_admin_password: str | None = Header(default=None)):
     cursor.execute(
         """SELECT id, name, email, plan_code, plan_name, category, list_price,
                   discount_percent, demo_amount, payment_method, payment_reference,
+                  transaction_id,
                   payment_status, status, created_at
            FROM subscriptions ORDER BY id DESC"""
     )
@@ -873,35 +1099,4 @@ def admin_revoke_subscription(
         raise HTTPException(status_code=409, detail="Only active subscriptions can be revoked.")
     conn.commit()
     return {"success": True, "status": "revoked"}
-
-
-@app.get("/subscriptions/status/{payment_reference}")
-def subscription_status(payment_reference: str):
-    """Return the latest admin-reviewed state for one unguessable demo reference."""
-    cursor.execute(
-        """SELECT plan_name, category, demo_amount, payment_method,
-                  payment_reference, payment_status, status, created_at, updated_at
-           FROM subscriptions WHERE payment_reference=?""",
-        (payment_reference,),
-    )
-    row = cursor.fetchone()
-    if row is None:
-        raise HTTPException(status_code=404, detail="Subscription record not found.")
-
-    columns = [item[0] for item in cursor.description]
-    record = dict(zip(columns, row))
-    return {
-        "subscription": {
-            "name": record["plan_name"],
-            "category": record["category"],
-            "amount": record["demo_amount"],
-            "duration": "30 days",
-            "payment_method": record["payment_method"],
-            "payment_reference": record["payment_reference"],
-            "payment_status": record["payment_status"],
-            "status": record["status"],
-            "created_at": record["created_at"],
-            "updated_at": record["updated_at"],
-        }
-    }
 
