@@ -88,6 +88,129 @@ if DATABASE_URL:
     cursor.execute("ALTER TABLE interview_history ADD COLUMN IF NOT EXISTS answers_json TEXT NOT NULL DEFAULT '[]'")
     cursor.execute("ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS transaction_id TEXT NOT NULL DEFAULT ''")
     cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_subscriptions_transaction_id ON subscriptions(transaction_id) WHERE transaction_id <> ''")
+
+    # Import the existing Render SQLite database once before switching the app
+    # to PostgreSQL. The marker and imported rows share one transaction, so a
+    # failed import can be retried safely on the next start.
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS interviewiq_migrations (
+        name TEXT PRIMARY KEY,
+        source_path TEXT NOT NULL,
+        completed_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )
+    """)
+    cursor.execute("SELECT name FROM interviewiq_migrations WHERE name=?", ("sqlite_to_postgres_v1",))
+    migration_done = cursor.fetchone() is not None
+    conn.commit()
+
+    if not migration_done:
+        sqlite_source = os.path.abspath(
+            os.environ.get("SQLITE_MIGRATION_PATH")
+            or os.environ.get("DATABASE_PATH")
+            or os.path.join(os.path.dirname(__file__), "auth.db")
+        )
+        if not os.path.isfile(sqlite_source):
+            if os.getenv("ALLOW_EMPTY_POSTGRES_BOOTSTRAP", "false").lower() != "true":
+                raise RuntimeError(
+                    "DATABASE_URL is configured but the existing SQLite database was not found. "
+                    "Set SQLITE_MIGRATION_PATH to its location or explicitly set "
+                    "ALLOW_EMPTY_POSTGRES_BOOTSTRAP=true only after verifying there is no data to migrate."
+                )
+            cursor.execute(
+                "INSERT INTO interviewiq_migrations (name, source_path) VALUES (?, ?)",
+                ("sqlite_to_postgres_v1", "explicit_empty_bootstrap"),
+            )
+            conn.commit()
+        else:
+            source_conn = sqlite3.connect(f"file:{sqlite_source}?mode=ro", uri=True)
+            source_conn.row_factory = sqlite3.Row
+            try:
+                source_tables = {
+                    row[0] for row in source_conn.execute(
+                        "SELECT name FROM sqlite_master WHERE type='table'"
+                    ).fetchall()
+                }
+                if not {"users", "interview_history"}.issubset(source_tables):
+                    raise RuntimeError("The SQLite source is missing the users or interview_history table.")
+
+                source_counts = {
+                    table: source_conn.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
+                    if table in source_tables else 0
+                    for table in ("users", "interview_history", "subscriptions")
+                }
+                target_counts = {}
+                for table in ("users", "interview_history", "subscriptions"):
+                    cursor.execute(f"SELECT COUNT(*) FROM {table}")
+                    target_counts[table] = cursor.fetchone()[0]
+
+                if any(target_counts.values()):
+                    raise RuntimeError(
+                        "Supabase already contains records but the SQLite import marker is missing; "
+                        "refusing to combine databases automatically."
+                    )
+
+                if any(source_counts.values()):
+                    table_columns = {
+                        "users": ("id", "name", "email", "password"),
+                        "interview_history": (
+                            "id", "email", "ats_score", "interview_score", "created_at",
+                            "company", "track", "answers_json",
+                        ),
+                        "subscriptions": (
+                            "id", "name", "email", "plan_code", "plan_name", "category",
+                            "list_price", "discount_percent", "demo_amount", "payment_method",
+                            "payment_reference", "transaction_id", "payment_status", "status",
+                            "created_at", "updated_at",
+                        ),
+                    }
+                    defaults = {
+                        "company": "",
+                        "track": "",
+                        "answers_json": "[]",
+                        "transaction_id": "",
+                        "payment_status": "demo_paid",
+                        "status": "active",
+                    }
+                    for table, columns in table_columns.items():
+                        if table not in source_tables:
+                            continue
+                        present = {
+                            row[1] for row in source_conn.execute(f"PRAGMA table_info({table})").fetchall()
+                        }
+                        if "id" not in present:
+                            raise RuntimeError(f"The SQLite {table} table has no id column.")
+                        insert_columns = [column for column in columns if column in present or column in defaults]
+                        placeholders = ", ".join("?" for _ in insert_columns)
+                        insert_sql = (
+                            f"INSERT INTO {table} ({', '.join(insert_columns)}) "
+                            f"VALUES ({placeholders}) ON CONFLICT (id) DO NOTHING"
+                        )
+                        for source_row in source_conn.execute(f"SELECT * FROM {table} ORDER BY id"):
+                            row = dict(source_row)
+                            values = [row[column] if column in row else defaults[column] for column in insert_columns]
+                            cursor.execute(insert_sql, values)
+
+                    for table in ("users", "interview_history", "subscriptions"):
+                        cursor.execute(
+                            f"SELECT setval(pg_get_serial_sequence('{table}', 'id'), "
+                            f"GREATEST(COALESCE(MAX(id), 1), 1), COUNT(*) > 0) FROM {table}"
+                        )
+
+                    for table, expected in source_counts.items():
+                        cursor.execute(f"SELECT COUNT(*) FROM {table}")
+                        if cursor.fetchone()[0] != expected:
+                            raise RuntimeError(f"SQLite import verification failed for {table}.")
+
+                cursor.execute(
+                    "INSERT INTO interviewiq_migrations (name, source_path) VALUES (?, ?)",
+                    ("sqlite_to_postgres_v1", sqlite_source),
+                )
+                conn.commit()
+            except Exception:
+                conn.rollback()
+                raise
+            finally:
+                source_conn.close()
 else:
     # Local development defaults to a SQLite file beside this module. A custom
     # path is useful for any persistent volume mounted at runtime.
@@ -158,3 +281,4 @@ else:
     cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_subscriptions_transaction_id ON subscriptions(transaction_id) WHERE transaction_id <> ''")
 
 conn.commit()
+
