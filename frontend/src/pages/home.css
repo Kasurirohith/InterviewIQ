@@ -772,3 +772,72 @@
 #root .app-layout .app-main .home-page .home-hero { background: radial-gradient(ellipse at 50% 0%, #eeece6 0, #f7f6f3 68%) !important; }
 #root .app-layout .app-main .home-page .home-choice-card { padding: clamp(24px, 2.4vw, 38px) !important; }
 #root .app-layout .app-main .home-page .home-page button { min-height: 48px; }
+
+.home-page .resume-panel-copy { align-items: stretch; }
+.home-page .resume-panel-copy .home-icon-box,
+.home-page .resume-panel-copy h3,
+.home-page .resume-panel-copy > p { align-self: flex-start; }
+.resume-input-label {
+  margin: 15px 0 6px;
+  color: #52525b;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+.resume-input-label span { margin-left: 5px; color: #a1a1aa; font-size: 9px; }
+.resume-target-input,
+.resume-job-description {
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid #deddd7;
+  border-radius: 7px;
+  background: #fffefa;
+  color: #27272a;
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.6;
+  box-sizing: border-box;
+}
+.resume-job-description { resize: vertical; min-height: 96px; }
+.resume-target-input:focus,
+.resume-job-description:focus { outline: 2px solid #a8a29e; outline-offset: 1px; }
+.resume-upload-error { margin-top: 12px; color: #b42318 !important; }
+.resume-analysis {
+  margin-top: 22px;
+  padding: clamp(18px, 3vw, 30px);
+  border: 1px solid #dfddd7;
+  border-radius: 12px;
+  background: #fffefa;
+}
+.resume-analysis-heading { display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+.resume-analysis-heading h3 { margin: 5px 0; font-size: 21px; letter-spacing: .04em; }
+.resume-analysis-heading p { margin: 0; }
+.resume-analysis-score { flex-shrink: 0; color: #18181b; font-size: 34px; letter-spacing: -1px; }
+.resume-analysis-score span { color: #71717a; font-size: 15px; font-weight: 500; letter-spacing: 0; }
+.resume-score-note,
+.resume-analysis-note,
+.resume-analysis-disclaimer { color: #71717a; font-size: 11px !important; line-height: 1.7 !important; }
+.resume-breakdown-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 18px 0; }
+.resume-breakdown-grid > div { display: flex; flex-direction: column; gap: 8px; padding: 14px; border: 1px solid #e7e5df; border-radius: 8px; background: #f7f6f3; }
+.resume-breakdown-grid span { color: #71717a; font-size: 9px; font-weight: 700; letter-spacing: .08em; }
+.resume-breakdown-grid strong { color: #27272a; font-size: 16px; }
+.resume-analysis-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 12px; }
+.resume-analysis-block { min-width: 0; padding: 16px; border: 1px solid #e7e5df; border-radius: 8px; background: #fff; }
+.resume-analysis-block h4 { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0 0 12px; color: #3f3f46; font-size: 10px; letter-spacing: .07em; }
+.resume-analysis-block h4 span { display: grid; place-items: center; min-width: 21px; height: 21px; padding: 0 5px; border-radius: 20px; background: #f0eee9; font-size: 10px; }
+.resume-analysis-block > p { margin: 0; font-size: 11px !important; }
+.resume-skill-list,
+.resume-advice-list { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.resume-skill-list li,
+.resume-advice-list li { display: grid; gap: 4px; min-width: 0; padding-bottom: 10px; border-bottom: 1px solid #efeee9; }
+.resume-skill-list li:last-child,
+.resume-advice-list li:last-child { padding-bottom: 0; border-bottom: 0; }
+.resume-skill-list strong,
+.resume-advice-list strong { color: #27272a; font-size: 11px; }
+.resume-skill-list small,
+.resume-advice-list small { color: #71717a; font-size: 10px; line-height: 1.6; overflow-wrap: anywhere; }
+.resume-analysis-disclaimer { margin: 16px 0 0; }
+@media (max-width: 700px) {
+  .resume-breakdown-grid { grid-template-columns: 1fr; }
+  .resume-analysis-columns { grid-template-columns: 1fr; }
+}
