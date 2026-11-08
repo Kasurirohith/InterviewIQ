@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { getUpiQrUrl, subscriptionPlans, submitDemoPayment, submitManualUpiPayment } from "../services/subscriptions";
+import { getUpiQrUrl, loadSubscriptionAvailability, subscriptionPlans, submitDemoPayment, submitManualUpiPayment } from "../services/subscriptions";
 import "./Subscriptions.css";
 
 const money = (value) => `₹${Number(value).toFixed(Number(value) % 1 ? 2 : 0)}`;
@@ -10,11 +10,23 @@ export default function DemoCheckout() {
   const navigate = useNavigate();
   const plan = subscriptionPlans[planCode];
   const isManualUpi = plan?.paymentType === "upi_manual";
-  const manualUpiEnabled = import.meta.env.VITE_UPI_PAYMENTS_ENABLED === "true";
+  const [availability, setAvailability] = useState({ annualUpiEnabled: false, testPlanEnabled: false });
+  const [availabilityLoaded, setAvailabilityLoaded] = useState(false);
   const [method, setMethod] = useState("demo_card");
   const [transactionId, setTransactionId] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    let active = true;
+    loadSubscriptionAvailability()
+      .then((result) => { if (active) setAvailability(result); })
+      .catch(() => { if (active) setAvailability({ annualUpiEnabled: false, testPlanEnabled: false }); })
+      .finally(() => { if (active) setAvailabilityLoaded(true); });
+    return () => { active = false; };
+  }, []);
+
+  const manualUpiEnabled = availability.annualUpiEnabled && (planCode !== "plus_test" || availability.testPlanEnabled);
 
   if (!plan) return <main className="subscription-page"><h1>Plan not found</h1><Link to="/subscriptions">See available plans</Link></main>;
 
@@ -64,7 +76,7 @@ export default function DemoCheckout() {
         </div>
 
         <form className="checkout-form" onSubmit={handleSubmit}>
-          {isManualUpi && !manualUpiEnabled ? <p className="subscription-pending-notice">UPI checkout is not available until persistent payment storage is configured. You will not be asked to pay here.</p> : isManualUpi ? <>
+          {isManualUpi && (!availabilityLoaded || !manualUpiEnabled) ? <p className="subscription-pending-notice">{availabilityLoaded ? "UPI checkout is unavailable until persistent payment storage and plan settings are ready. You will not be asked to pay here." : "Checking payment setup. You will not be asked to pay until setup is confirmed."}</p> : isManualUpi ? <>
             <h2>Pay By UPI</h2>
             <p>Scan this QR in Google Pay, PhonePe, Paytm, or another UPI app. Confirm the recipient is <strong>Hittu2</strong> and the amount is {money(plan.amount)}.</p>
             <img className="upi-payment-qr" src={getUpiQrUrl(planCode)} alt={`UPI payment QR for ${money(plan.amount)}`} />
@@ -89,7 +101,7 @@ export default function DemoCheckout() {
           </fieldset>
           </>}
           {error && <p className="subscription-error" role="alert">{error}</p>}
-          <button className="subscription-primary" type="submit" disabled={busy || (isManualUpi && !manualUpiEnabled)}>
+          <button className="subscription-primary" type="submit" disabled={busy || (isManualUpi && (!availabilityLoaded || !manualUpiEnabled))}>
             {busy ? "Submitting…" : isManualUpi ? "Submit UPI Details For Verification" : `Complete Demo Payment · ${money(plan.amount)}`}
           </button>
           <p className="checkout-disclaimer">{isManualUpi ? "Submitting the UTR creates a pending request. An administrator must verify the transfer before activating the plan." : "Submitting records a simulated payment for admin review. Your plan stays pending until the admin approves it. No money is charged."}</p>
